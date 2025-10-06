@@ -1,0 +1,34 @@
+name: Tests
+
+on:
+  push:
+    paths:
+    - 'racket3d.rkt'
+    - '.github/workflows/**'
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - name: Install Racket
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y racket
+    - name: Install SPD package
+      run: |
+        curl https://cs110.students.cs.ubc.ca/spd.plt > spd.plt
+        raco setup -A spd.plt
+    - name: Run tests
+      id: run_tests
+      run: |
+        echo "$(xvfb-run -a raco test src/main.rkt 2>&1)" > output.txt
+        cat output.txt
+        printf "\`\`\`\n$(cat output.txt)\n\`\`\`" > $GITHUB_STEP_SUMMARY
+        echo "FAIL=$([[ "$(cat output.txt)" =~ ".rkt:" || "$(cat output.txt)" =~ "fail" ]] && echo 1 || echo 0)" > $GITHUB_OUTPUT
+    - name: Test failures
+      if: ${{ steps.run_tests.outputs.FAIL != 0 }}
+      run: |
+        cat output.txt
+        exit 1
