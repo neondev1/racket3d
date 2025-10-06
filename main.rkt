@@ -4,50 +4,69 @@
 (require spd/tags)
 (require 2htdp/image)
 (require 2htdp/universe)
+(require "object.rkt")
 
-
-;; My world program (make this more specific)
-(@htdw WS)
+(@htdw Camera)
 ;; =================
 ;; Constants:
 
+(define WIDTH 1280)
+(define HEIGHT 720)
 
+(define MTS (empty-scene WIDTH HEIGHT))
 
 ;; =================
 ;; Data definitions:
-
-
-(@htdd WS)
-;; WS is ... (give WS a better name)
-
-
-
+(@htdd Camera)
 
 ;; =================
 ;; Functions:
 
 (@htdf main)
-(@signature WS -> WS)
+(@signature Camera -> Camera)
 ;; start the world with (main ...)
-;; no tests for main function
 
 (@template-origin htdw-main)
 
-(define (main ws)
- (big-bang ws ;WS
- (on-tick tock) ;WS -> WS
- (to-draw render) ;WS -> Image
- (on-mouse ...) ;WS Integer Integer MouseEvent -> WS
- (on-key ...))) ;WS KeyEvent -> WS
+(define (main cam)
+  (big-bang cam                  ;Camera
+    (on-tick    tick)            ;Camera -> Camera
+    (to-draw    render)          ;Camera -> Image
+    (on-mouse   mouse-handler)   ;Camera Integer Integer MouseEvent -> Camera
+    (on-key     key-handler)     ;Camera KeyEvent -> Camera
+    (on-release key-release)))   ;Camera KeyEvent -> Camera
 
-(@htdf tock)
-(@signature WS -> WS)
+    
+(@htdf tick)
+(@signature Camera -> Camera)
 ;; produce the next ...
 ;; !!!
-(define (tock ws) ws)
+(define (tick cam) cam) ;stub
 
+    
 (@htdf render)
-(@signature WS -> Image)
+(@signature Camera -> Image)
 ;; render ...
 ;; !!!
-(define (render ws) empty-image)
+(define (render cam) MTS) ;stub
+
+
+(@htdf mouse-handler)
+(@signature Camera Integer Integer MouseEvent -> Camera)
+;; on mouse click ...
+;; !!!
+(define (mouse-handler cam x y me) cam) ;stub
+
+
+(@htdf key-handler)
+(@signature Camera KeyEvent -> Camera)
+;; on key press ...
+;; !!!
+(define (key-handler cam ke) cam) ;stub
+
+
+(@htdf key-release)
+(@signature Camera KeyEvent -> Camera)
+;; on key release ...
+;; !!!
+(define (key-release cam ke) cam) ;stub
