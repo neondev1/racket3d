@@ -16,9 +16,13 @@
 (define BEZEL-X 6)
 (define BEZEL-WIDTH (/ BEZEL-X 2))
 
+;TODO: add constants for some of this
 (define EMP (empty-scene WIDTH HEIGHT))
 (define MTS (overlay/xy (rectangle 630 445 "outline" "black")
-                       (- (- BEZEL-WIDTH) 1) -30 EMP))
+                        (- (- BEZEL-WIDTH) 1) -30 EMP))
+
+(define TPS 60)
+(define INACTIVE-DELAY (* TPS 20))
 
 ;;
 ;; BASIC DATA DEFINITIONS
@@ -384,7 +388,7 @@
 
 (@htdf vec)
 (@signature Point Point -> Vector)
-;; produce vector from first to seconds point
+;; produce vector from first to second point
 (check-expect (to-vec (make-point 0 0 0)
                       (make-point 0 0 0))
               (make-vec 0 0 0))
@@ -440,59 +444,65 @@
 ;;
 ;; WORLD
 ;;
+
 (@htdd GuiState)
-(define-struct gui (file help side sel))
-;; GuiState is (make-gui MenuState Sidebar Properties)
-;; interp. all gui dropdown states. sel is 0 or index in list selected
+(define-struct gui (file help add sel))
+;; GuiState is (make-gui Boolean Boolean Boolean Natural)
+;; interp. GUI dropdown states for File and Help menus and object creation; 
+;;         sel is 1-based index of selected object, 0 if no selection
+;; CONSTRAINT: 
 (define GUI1 (make-gui false false false 0))
-(define GUI2 (make-gui true false false 0))
-(define GUI3 (make-gui false false true 2))
+(define GUI2 (make-gui true  false false 0))
+(define GUI3 (make-gui false false true  2))
 
 (@dd-template-rules compound) ;5 fields
 
-(define (GuiState gui)
+(define (fn-for-gui gui)
   (... (gui-file gui)
        (gui-help gui)
-       (gui-side gui)
-       (gui-sel gui)))
+       (gui-add  gui)
+       (gui-sel  gui)))
 
 
 (@htdd Camera)
-(define-struct camera (gui objs pos light))
-;; Camera is (make-camera GuiState ListOfObject Point Point
-;; interp. gui state, list of objects, position of camera and light.
-(define CAM1 (make-camera GUI1 empty (make-point 0 0 0) (make-point 0 0 0)))
+(define-struct camera (gui objs pos light time))
+;; Camera is (make-camera GuiState ListOfObject Point Point Natural
+;; interp. GUI state, object list, position of camera/light, ticks since input
+(define CAM1 (make-camera GUI1 empty (make-point 1 1 1) (make-point 2 2 2) 0))
 
-(@dd-template-rules compound)
+(@dd-template-rules compound ;5 fields
+                    ref      ;GuiState
+                    ref      ;ListOfObject
+                    ref      ;Point
+                    ref)     ;Point
 
 (define (fn-for-cam cam)
-  (... (camera-gui cam)
-       (camera-objs cam)
-       (camera-pos cam)
-       (camera-light cam)))
-       
-
+  (... (fn-for-gui (camera-gui cam))
+       (fn-for-loo (camera-objs cam))
+       (fn-for-point (camera-pos cam))
+       (fn-for-point (camera-light cam))
+       (camera-time cam)))
 
 
 (@htdf main)
 (@signature Camera -> Camera)
-;; start the world with (main ...)
+;; start the world with (main CAM1)
 
 (@template-origin htdw-main)
 
 (define (main cam)
-  (big-bang cam                  ;Camera
-    (on-tick    tick)            ;Camera -> Camera
-    (to-draw    render)          ;Camera -> Image
-    (on-mouse   mouse-handler)   ;Camera Integer Integer MouseEvent -> Camera
-    (on-key     key-handler)     ;Camera KeyEvent -> Camera
-    (on-release key-release)))   ;Camera KeyEvent -> Camera
+  (big-bang cam                 ;Camera
+    (on-tick    tick (/ 1 TPS)) ;Camera -> Camera
+    (to-draw    render)         ;Camera -> Image
+    (on-mouse   mouse-handler)  ;Camera Integer Integer MouseEvent -> Camera
+    (on-key     key-handler)    ;Camera KeyEvent -> Camera
+    (on-release key-release)))  ;Camera KeyEvent -> Camera
 
     
 (@htdf tick)
 (@signature Camera -> Camera)
-;; produce the next camera state
-;; !!!
+;; increment ticks since last user interaction
+
 (define (tick cam) cam) ;stub
   
     
@@ -506,10 +516,10 @@
 
 (@template
  (define (render cam)
-  (... (camera-gui cam)
-       (camera-objs cam)
-       (camera-pos cam)
-       (camera-light cam))))
+   (... (camera-gui cam)
+        (camera-objs cam)
+        (camera-pos cam)
+        (camera-light cam))))
 
 (define (render cam)
   (overlay (render-gui (camera-gui cam))
