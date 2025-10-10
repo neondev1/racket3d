@@ -13,7 +13,12 @@
 (define WIDTH 640)
 (define HEIGHT 480)
 
-(define MTS (empty-scene WIDTH HEIGHT))
+(define BEZEL-X 6)
+(define BEZEL-WIDTH (/ BEZEL-X 2))
+
+(define EMP (empty-scene WIDTH HEIGHT))
+(define MTS (overlay/xy (rectangle 630 445 "outline" "black")
+                       (- (- BEZEL-WIDTH) 1) -30 EMP))
 
 ;;
 ;; BASIC DATA DEFINITIONS
@@ -435,8 +440,38 @@
 ;;
 ;; WORLD
 ;;
+(@htdd GuiState)
+(define-struct gui (file help side sel))
+;; GuiState is (make-gui MenuState Sidebar Properties)
+;; interp. all gui dropdown states. sel is 0 or index in list selected
+(define GUI1 (make-gui false false false 0))
+(define GUI2 (make-gui true false false 0))
+(define GUI3 (make-gui false false true 2))
+
+(@dd-template-rules compound) ;5 fields
+
+(define (GuiState gui)
+  (... (gui-file gui)
+       (gui-help gui)
+       (gui-side gui)
+       (gui-sel gui)))
+
 
 (@htdd Camera)
+(define-struct camera (gui objs pos light))
+;; Camera is (make-camera GuiState ListOfObject Point Point
+;; interp. gui state, list of objects, position of camera and light.
+(define CAM1 (make-camera GUI1 empty (make-point 0 0 0) (make-point 0 0 0)))
+
+(@dd-template-rules compound)
+
+(define (fn-for-cam cam)
+  (... (camera-gui cam)
+       (camera-objs cam)
+       (camera-pos cam)
+       (camera-light cam)))
+       
+
 
 
 (@htdf main)
@@ -456,16 +491,41 @@
     
 (@htdf tick)
 (@signature Camera -> Camera)
-;; produce the next ...
+;; produce the next camera state
 ;; !!!
 (define (tick cam) cam) ;stub
-
+  
     
 (@htdf render)
 (@signature Camera -> Image)
 ;; render ...
 ;; !!!
-(define (render cam) MTS) ;stub
+;(define (render cam) MTS) ;stub
+
+(@template-origin Camera)
+
+(@template
+ (define (render cam)
+  (... (camera-gui cam)
+       (camera-objs cam)
+       (camera-pos cam)
+       (camera-light cam))))
+
+(define (render cam)
+  (overlay (render-gui (camera-gui cam))
+           (render-objs (camera-objs cam)
+                        (camera-pos cam)
+                        (camera-light cam))))
+
+(@htdf render-gui)
+(@signature GuiState -> Image)
+;; renders the gui and dropdowns
+;; !!!
+;(define (render-gui g) MTS) ;stub
+(check-expect (render-gui GUI1) MTS)
+
+(define (render-gui gui) MTS)
+(define (render-objs objs pos light) MTS)
 
 
 (@htdf mouse-handler)
