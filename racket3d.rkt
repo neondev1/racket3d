@@ -17,6 +17,7 @@
 (define BEZEL-WIDTH (/ BEZEL-X 2))
 
 ;TODO: add constants for some of this
+;!!!
 (define EMP (empty-scene WIDTH HEIGHT))
 (define MTS (overlay/xy (rectangle 630 445 "outline" "black")
                         (- (- BEZEL-WIDTH) 1) -30 EMP))
@@ -32,114 +33,136 @@
 (define-struct point (x y z))
 ;; Point is (make-point Number Number Number)
 ;; interp. the x, y and z coordinates of a point
-(define P1 (make-point 0 0 0))
-(define P2 (make-point 1 1 1))
-(define P3 (make-point 0.1 1.2 2.3))
+(define POINT1 (make-point 0 0 0))
+(define POINT2 (make-point 1 1 1))
+(define POINT3 (make-point 0.1 1.2 2.3))
+(define POINT4 (make-point -0.1 0 -1))
 
 (@dd-template-rules compound) ;3 fields
 
 (define (fn-for-point p)
-  (... (point-x p)
-       (point-y p)
-       (point-z p)))
+  (... (point-x p)   ;Number
+       (point-y p)   ;Number
+       (point-z p))) ;Number
 
 
 (@htdd Euler)
 (define-struct euler (alpha beta gamma))
 ;; Euler is (make-euler Number Number Number)
 ;; interp. the Euler angles representing an orientation
-(define EA1 (make-euler 0 0 0))
-(define EA2 (make-euler 60 90 180))
-(define EA3 (make-euler 12.3 45.6 78.9))
+(define EULER1 (make-euler 0 0 0))
+(define EULER2 (make-euler 60 90 180))
+(define EULER3 (make-euler 12.3 45.6 78.9))
+(define EULER4 (make-euler -60 -45.6 0))
 
 (@dd-template-rules compound) ;3 fields
 
 (define (fn-for-euler e)
-  (... (euler-alpha e)
-       (euler-beta  e)
-       (euler-gamma e)))
+  (... (euler-alpha e)   ;Number
+       (euler-beta  e)   ;Number
+       (euler-gamma e))) ;Number
+
 
 (@htdd Triangle)
-(define-struct tri (v0 v1 v2 col))
+(define-struct tri (vertex-0 vertex-1 vertex-2 color))
 ;; Triangle is (make-tri Point Point Point Color)
-;; interp. the three vertices and fill colour of a triangle
+;; interp. the three vertices and fill color of a triangle
 ;; CONSTRAINT: No two vertices should be equal
-(define T1 (make-tri (make-point 0 1 1)
-                     (make-point 1 0 1)
-                     (make-point 0 0 1)
-                     "black"))            ;triangles for a
-(define T2 (make-tri (make-point 0 1 1)   ;rectangular mesh
-                     (make-point 1 1 1)
-                     (make-point 1 0 1)
-                     "black"))
+(define TRIANGLE1 (make-tri (make-point 0 1 1)
+                            (make-point 1 0 1)
+                            (make-point 0 0 1)
+                            "black"))                 ;triangles for a
+(define TRIANGLE2 (make-tri (make-point 0 1 1) ;rectangular mesh
+                            (make-point 1 1 1)
+                            (make-point 1 0 1)
+                            "black"))
+(define TRIANGLE3 (make-tri (make-point -1 1 1)
+                            (make-point 1 1 1)
+                            (make-point 0 0 1)
+                            "red"))
 
-(@dd-template-rules compound ;4 fields
-                    ref      ;(tri-v0 Triangle) is Point
-                    ref      ;(tri-v1 Triangle) is Point
-                    ref)     ;(tri-v2 Triangle) is Point
+(@dd-template-rules compound             ;4 fields
+                    ref                  ;(tri-vertex-0 t) is Point
+                    ref                  ;(tri-vertex-1 t) is Point
+                    ref                  ;(tri-vertex-2 t) is Point
+                    atomic-non-distinct) ;Color
 
 (define (fn-for-triangle t)
-  (... (fn-for-point (tri-v0 t))
-       (fn-for-point (tri-v1 t))
-       (fn-for-point (tri-v2 t))
-       (tri-col t)))
+  (... (fn-for-point (tri-vertex-0 t)) 
+       (fn-for-point (tri-vertex-1 t))
+       (fn-for-point (tri-vertex-2 t))
+       (tri-color t)))                 ;Color
 
 ;;
 ;; INTERNAL DEFINITIONS
 ;;
 
 (@htdd Cuboid)
-(define-struct cuboid (pos rot xs ys zs col))
+(define-struct cuboid (position rotation x-scale y-scale z-scale color))
 ;; Cuboid is (make-cuboid Point Euler Number Number Number Color)
 ;; interp. the position, orientation, x, y, z scales and colour of a cuboid
-(define C1 (make-cuboid (make-point 0 0 0)
-                        (make-euler 0 0 0)
-                        1 1 1 "black")) ;Unit cube
-(define C2 (make-cuboid (make-point 1 2 3)
-                        (make-euler 0 0 0)
-                        2 4 6 "black"))
-(define C3 (make-cuboid (make-point 1 2 1)
-                        (make-euler 45 45 45)
-                        2 3 4 "black"))
+(define CUBOID1 (make-cuboid (make-point 0 0 0) ;Unit cube
+                             (make-euler 0 0 0)
+                             1 1 1 "black")) 
+(define CUBOID2 (make-cuboid (make-point 1 2 3)
+                             (make-euler 0 0 0)
+                             2 4 6 "black"))
+(define CUBOID3 (make-cuboid (make-point 1 2 1)
+                             (make-euler 45 45 45)
+                             2 3 4 "black"))
+(define CUBOID4 (make-cuboid (make-point -1 -2 -3)
+                             (make-euler -50 -30 -15)
+                             -5 0 -4 "red"))
 
-(@dd-template-rules compound ;6 fields
-                    ref      ;(cuboid-pos Cuboid) is Point
-                    ref)     ;(cuboid-rot Cuboid) is Euler
+(@dd-template-rules compound             ;6 fields
+                    ref                  ;(cuboid-position c) is Point
+                    ref                  ;(cuboid-rotation c) is Euler
+                    atomic-non-distinct  ;Number
+                    atomic-non-distinct  ;Number
+                    atomic-non-distinct  ;Number
+                    atomic-non-distinct) ;Color
 
 (define (fn-for-cuboid c)
-  (... (fn-for-point (cuboid-pos c))
-       (fn-for-euler (cuboid-rot c))
-       (cuboid-xs c)
-       (cuboid-ys c)
-       (cuboid-zs c)
-       (cuboid-col c)))
+  (... (fn-for-point (cuboid-position c))
+       (fn-for-euler (cuboid-rotation c))
+       (cuboid-x-scale c)                 ;Number
+       (cuboid-y-scale c)                 ;Number
+       (cuboid-z-scale c)                 ;Number
+       (cuboid-color c)))                 ;Color
 
 
 (@htdd Icosphere)
-(define-struct icosphere (pos rot xs ys zs col))
+(define-struct icosphere (position rotation x-scale y-scale z-scale color))
 ;; Icosphere is (make-icosphere Point Euler Number Number Number Color)
 ;; interp. the position, orientation, x, y, z scales and colour of an icosphere
-(define E1 (make-icosphere (make-point 0 0 0)
-                           (make-euler 0 0 0)
-                           1 1 1 "black")) ;sphere
-(define E2 (make-icosphere (make-point 0 0 0)
-                           (make-euler 23 37 79)
-                           1 1 1 "black")) ;rotated sphere is nearly identical
-(define E3 (make-icosphere (make-point 1 3 5)
-                           (make-euler 100 120 140)
-                           3 4 5 "black"))
+(define ICOSPHERE1 (make-icosphere (make-point 0 0 0) ;sphere
+                                   (make-euler 0 0 0)
+                                   1 1 1 "black")) 
+(define ICOSPHERE2 (make-icosphere (make-point 0 0 0) ;rotated sphere is
+                                   (make-euler 23 37 79)      ;nearly identical
+                                   1 1 1 "black")) 
+(define ICOSPHERE3 (make-icosphere (make-point 1 3 5)
+                                   (make-euler 100 120 140)
+                                   3 4 5 "black"))
+(define ICOSPHERE4 (make-icosphere (make-point -1 -3 -5)
+                                   (make-euler -100 -120 140)
+                                   -3 -4 -5 "red"))
 
-(@dd-template-rules compound ;6 fields
-                    ref      ;(icosphere-pos Icosphere) is Point
-                    ref)     ;(icosphere-rot Icosphere) is Euler
+(@dd-template-rules compound             ;6 fields
+                    ref                  ;(icosphere-position i) is Point
+                    ref                  ;(icosphere-rotation i) is Euler
+                    atomic-non-distinct  ;Number
+                    atomic-non-distinct  ;Number
+                    atomic-non-distinct  ;Number
+                    atomic-non-distinct) ;Color
 
 (define (fn-for-icosphere i)
-  (... (fn-for-point (icosphere-pos i))
-       (fn-for-euler (icosphere-rot i))
-       (icosphere-xs i)
-       (icosphere-ys i)
-       (icosphere-zs i)
-       (icosphere-col i)))
+  (... (fn-for-point (icosphere-position i))
+       (fn-for-euler (icosphere-rotation i))
+       (icosphere-x-scale i)                 ;Number
+       (icosphere-y-scale i)                 ;Number
+       (icosphere-z-scale i)                 ;Number
+       (icosphere-color i)))                 ;Color
 
 
 (@htdd Mesh)
@@ -147,23 +170,24 @@
 ;;  - empty
 ;;  - (cons Triangle Mesh)
 ;; interp. a mesh composed of triangular faces
-(define M1 empty)
-(define M2 (list (make-tri (make-point 2 0 0) ;Tetrahedron mesh
+(define MESH1 empty)
+(define MESH2 (cons (make-tri (make-point 2 0 0) ;Tetrahedron mesh
                            (make-point -1 -1 (/ (sqrt 13) 2))
                            (make-point -1 -1 (/ (sqrt 13) -2))
                            "black")
-                 (make-tri (make-point -1 2 0)
-                           (make-point -1 -1 (/ (sqrt 13) 2))
-                           (make-point -1 -1 (/ (sqrt 13) -2))
-                           "black")
-                 (make-tri (make-point 2 0 0)
-                           (make-point -1 2 0)
-                           (make-point -1 -1 (/ (sqrt 13) 2))
-                           "black")
-                 (make-tri (make-point 2 0 0)
-                           (make-point -1 2 0)
-                           (make-point -1 -1 (/ (sqrt 13) -2))
-                           "black")))
+                 (cons (make-tri (make-point -1 2 0)
+                                 (make-point -1 -1 (/ (sqrt 13) 2))
+                                 (make-point -1 -1 (/ (sqrt 13) -2))
+                                 "black")
+                       (cons (make-tri (make-point 2 0 0)
+                                       (make-point -1 2 0)
+                                       (make-point -1 -1 (/ (sqrt 13) 2))
+                                       "black")
+                             (cons (make-tri (make-point 2 0 0)
+                                             (make-point -1 2 0)
+                                             (make-point -1 -1 (/ (sqrt 13) -2))
+                                             "black")
+                                   empty)))))
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;empty
@@ -188,13 +212,13 @@
 ;;  - Icosphere
 ;;  - Mesh
 ;; interp. the position, orientation and size info of an object
-(define O1 C1)
-(define O2 E1)
-(define O3 M2)
+(define OBJECT1 CUBOID1)
+(define OBJECT2 ICOSPHERE1)
+(define OBJECT3 MESH2)
 
 (@dd-template-rules one-of   ;3 cases
                     compound ;Cuboid
-                    ref
+                    ref      
                     compound ;Icosphere
                     ref
                     compound ;Mesh
@@ -215,7 +239,10 @@
 ;;  - (cons Object ListOfObject)
 ;; interp. a list of all objects to be rendered
 (define LOO1 empty)
-(define LOO2 (list O1 O2 O3))
+(define LOO2 (cons OBJECT1
+                   (cons OBJECT2
+                         (cons OBJECT3
+                               empty))))
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;empty
@@ -438,8 +465,8 @@
 (@template-origin fn-composition)
 
 (define (normal t)
-  (cross (to-vec (tri-v1 t) (tri-v0 t))
-         (to-vec (tri-v2 t) (tri-v1 t))))
+  (cross (to-vec (tri-vertex-1 t) (tri-vertex-0 t))
+         (to-vec (tri-vertex-2 t) (tri-vertex-1 t))))
 
 ;;
 ;; WORLD
