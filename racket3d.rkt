@@ -64,7 +64,7 @@
 
 
 (@htdd Triangle)
-(define-struct tri (vertex-0 vertex-1 vertex-2 color))
+(define-struct tri (v0 v1 v2 color))
 ;; Triangle is (make-tri Point Point Point Color)
 ;; interp. the three vertices and fill color of a triangle
 ;; CONSTRAINT: No two vertices should be equal
@@ -82,15 +82,15 @@
                             "red"))
 
 (@dd-template-rules compound             ;4 fields
-                    ref                  ;(tri-vertex-0 t) is Point
-                    ref                  ;(tri-vertex-1 t) is Point
-                    ref                  ;(tri-vertex-2 t) is Point
+                    ref                  ;(tri-v0 t) is Point
+                    ref                  ;(tri-v1 t) is Point
+                    ref                  ;(tri-v2 t) is Point
                     atomic-non-distinct) ;Color
 
 (define (fn-for-triangle t)
-  (... (fn-for-point (tri-vertex-0 t)) 
-       (fn-for-point (tri-vertex-1 t))
-       (fn-for-point (tri-vertex-2 t))
+  (... (fn-for-point (tri-v0 t)) 
+       (fn-for-point (tri-v1 t))
+       (fn-for-point (tri-v2 t))
        (tri-color t)))                 ;Color
 
 ;;
@@ -172,22 +172,23 @@
 ;; interp. a mesh composed of triangular faces
 (define MESH1 empty)
 (define MESH2 (cons (make-tri (make-point 2 0 0) ;Tetrahedron mesh
-                           (make-point -1 -1 (/ (sqrt 13) 2))
-                           (make-point -1 -1 (/ (sqrt 13) -2))
-                           "black")
-                 (cons (make-tri (make-point -1 2 0)
-                                 (make-point -1 -1 (/ (sqrt 13) 2))
-                                 (make-point -1 -1 (/ (sqrt 13) -2))
-                                 "black")
-                       (cons (make-tri (make-point 2 0 0)
-                                       (make-point -1 2 0)
-                                       (make-point -1 -1 (/ (sqrt 13) 2))
-                                       "black")
-                             (cons (make-tri (make-point 2 0 0)
-                                             (make-point -1 2 0)
-                                             (make-point -1 -1 (/ (sqrt 13) -2))
-                                             "black")
-                                   empty)))))
+                              (make-point -1 -1 (/ (sqrt 13) 2))
+                              (make-point -1 -1 (/ (sqrt 13) -2))
+                              "black")
+                    (cons (make-tri (make-point -1 2 0)
+                                    (make-point -1 -1 (/ (sqrt 13) 2))
+                                    (make-point -1 -1 (/ (sqrt 13) -2))
+                                    "black")
+                          (cons (make-tri (make-point 2 0 0)
+                                          (make-point -1 2 0)
+                                          (make-point -1 -1 (/ (sqrt 13) 2))
+                                          "black")
+                                (cons (make-tri (make-point 2 0 0)
+                                                (make-point -1 2 0)
+                                                (make-point -1 -1
+                                                            (/ (sqrt 13) -2))
+                                                "black")
+                                      empty)))))
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;empty
@@ -216,13 +217,10 @@
 (define OBJECT2 ICOSPHERE1)
 (define OBJECT3 MESH2)
 
-(@dd-template-rules one-of   ;3 cases
-                    compound ;Cuboid
-                    ref      
-                    compound ;Icosphere
-                    ref
-                    compound ;Mesh
-                    ref)
+(@dd-template-rules one-of ;3 cases
+                    ref    ;Cuboid   
+                    ref    ;Icosphere
+                    ref)   ;Mesh
 
 (define (fn-for-object o)
   (cond [(cuboid? o)
@@ -262,142 +260,146 @@
 ;;
 
 (@htdd Vector)
-(define-struct vec (x y z))
+(define-struct vector (x y z))
 ;; Vector is (make-vector Number Number Number)
 ;; interp. the x, y and z components of a 3D vector
-(define V1 (make-vec 0 0 0)) ;zero vector
-(define V2 (make-vec 0 0 1)) ;unit vector normal to xy plane
-(define V3 (make-vec 1.3 3.5 5.7))
+(define VECTOR1 (make-vector 0 0 0)) ;zero vector
+(define VECTOR2 (make-vector 0 0 1)) ;unit vector normal to xy plane
+(define VECTOR3 (make-vector 1.3 3.5 5.7))
+(define VECTOR4 (make-vector -1.3 -3.5 -5.7))
 
 (@dd-template-rules compound) ;3 fields
 
 (define (fn-for-vector v)
-  (... (vec-x v)
-       (vec-y v)
-       (vec-z v)))
+  (... (vector-x v)   ;Number
+       (vector-y v)   ;Number
+       (vector-z v))) ;Number
 
 ;;
 ;; LIGHTING FUNCTIONS
 ;;
 
-(@htdf mul)
+(@htdf scalar-multiply)
 (@signature Vector Number -> Vector)
 ;; produce vector multiplied by a scalar
-(check-expect (mul (make-vec 0 0 0) 2) (make-vec 0 0 0))
-(check-expect (mul (make-vec 1 2 3) 0) (make-vec 0 0 0))
-(check-expect (mul (make-vec 1.2 3.4 -5.6) -3) (make-vec -3.6 -10.2 16.8))
+(check-expect (scalar-multiply (make-vector 0 0 0) 2) (make-vector 0 0 0))
+(check-expect (scalar-multiply (make-vector 1 2 3) 0) (make-vector 0 0 0))
+(check-expect (scalar-multiply (make-vector 1.2 3.4 -5.6) -3)
+              (make-vector -3.6 -10.2 16.8))
 
-;(define (mul v s) (make-vec 0 0 0)) ;stub
+;(define (scalar-multiply v s) (make-vector 0 0 0)) ;stub
 
 (@template-origin Vector)
 
 (@template
- (define (mul v s)
-   (... (vec-x v)
-        (vec-y v)
-        (vec-z v)
-        s)))
+ (define (scalar-multiply v s)
+   (... s
+        (vector-x v)
+        (vector-y v)
+        (vector-z v))))
 
-(define (mul v s)
-  (make-vec (* (vec-x v) s)
-            (* (vec-y v) s)
-            (* (vec-z v) s)))
+(define (scalar-multiply v s)
+  (make-vector (* (vector-x v) s)
+               (* (vector-y v) s)
+               (* (vector-z v) s)))
 
 
-(@htdf div)
+(@htdf scalar-divide)
 (@signature Vector Number -> Vector)
 ;; produce vector divided by a scalar
 ;; CONSTRAINT: scalar must be nonzero
-(check-expect (div (make-vec 0 0 0) 2) (make-vec 0 0 0))
-(check-expect (div (make-vec 1.2 -4.5 7.8) 3) (make-vec 0.4 -1.5 2.6))
+(check-expect (scalar-divide (make-vector 0 0 0) 2)
+              (make-vector 0 0 0))
+(check-expect (scalar-divide (make-vector 1.2 -4.5 7.8) 3)
+              (make-vector 0.4 -1.5 2.6))
 
-;(define (div v s) (make-vec 0 0 0)) ;stub
+;(define (scalar-divide v s) (make-vector 0 0 0)) ;stub
 
 (@template-origin Vector)
 
 (@template
- (define (div v s)
-   (... (vec-x v)
-        (vec-y v)
-        (vec-z v)
-        s)))
+ (define (scalar-divide v s)
+   (... s
+        (vector-x v)
+        (vector-y v)
+        (vector-z v))))
 
-(define (div v s)
-  (make-vec (/ (vec-x v) s)
-            (/ (vec-y v) s)
-            (/ (vec-z v) s)))
+(define (scalar-divide v s)
+  (make-vector (/ (vector-x v) s)
+               (/ (vector-y v) s)
+               (/ (vector-z v) s)))
 
 
-(@htdf cross)
+(@htdf cross-product)
 (@signature Vector Vector -> Vector)
 ;; produce cross product of given vectors
-(check-expect (cross (make-vec 2 0 0)
-                     (make-vec 0 2 0))
-              (make-vec 0 0 4))
-(check-expect (cross (make-vec 0 2 0)
-                     (make-vec 2 0 0))
-              (make-vec 0 0 -4))
+(check-expect (cross-product (make-vector 2 0 0)
+                             (make-vector 0 2 0))
+              (make-vector 0 0 4))
+(check-expect (cross-product (make-vector 0 2 0)
+                             (make-vector 2 0 0))
+              (make-vector 0 0 -4))
 
-;(define (cross v0 v1) (make-vec 0 0 0)) ;stub
+;(define (cross-product v0 v1) (make-vector 0 0 0)) ;stub
 
 (@template-origin Vector)
 
 (@template
- (define (cross v0 v1)
-   (... (vec-x v0)
-        (vec-y v0)
-        (vec-z v0)
-        (vec-x v1)
-        (vec-y v1)
-        (vec-z v1))))
+ (define (cross-product v0 v1)
+   (... (vector-x v0)
+        (vector-y v0)
+        (vector-z v0)
+        (vector-x v1)
+        (vector-y v1)
+        (vector-z v1))))
 
-(define (cross v0 v1)
-  (make-vec (- (* (vec-y v0) (vec-z v1))
-               (* (vec-y v1) (vec-z v0)))
-            (- (* (vec-z v0) (vec-x v1))
-               (* (vec-z v1) (vec-x v0)))
-            (- (* (vec-x v0) (vec-y v1))
-               (* (vec-x v1) (vec-y v0)))))
+(define (cross-product v0 v1)
+  (make-vector (- (* (vector-y v0) (vector-z v1))
+                  (* (vector-y v1) (vector-z v0)))
+               (- (* (vector-z v0) (vector-x v1))
+                  (* (vector-z v1) (vector-x v0)))
+               (- (* (vector-x v0) (vector-y v1))
+                  (* (vector-x v1) (vector-y v0)))))
 
 
-(@htdf dot)
+(@htdf dot-product)
 (@signature Vector Vector -> Number)
 ;; produce dot product of given vectors
-(check-expect (dot (make-vec 2 0 0)
-                   (make-vec 0 2 2))
+(check-expect (dot-product (make-vector 2 0 0)
+                           (make-vector 0 2 2))
               0)
-(check-expect (dot (make-vec 0 2 0)
-                   (make-vec 0 3 0))
+(check-expect (dot-product (make-vector 0 2 0)
+                           (make-vector 0 3 0))
               6)
-(check-expect (dot (make-vec 1.2 3.4 5.6)
-                   (make-vec 9.8 -7.6 5.4))
+(check-expect (dot-product (make-vector 1.2 3.4 5.6)
+                           (make-vector 9.8 -7.6 5.4))
               16.16)
 
-;(define (dot v0 v1) 0) ;stub
+;(define (dot-product v0 v1) 0) ;stub
 
 (@template-origin Vector)
 
 (@template
- (define (dot v0 v1)
-   (... (vec-x v0)
-        (vec-y v0)
-        (vec-z v0)
-        (vec-x v1)
-        (vec-y v1)
-        (vec-z v1))))
+ (define (dot-product v0 v1)
+   (... (vector-x v0)
+        (vector-y v0)
+        (vector-z v0)
+        (vector-x v1)
+        (vector-y v1)
+        (vector-z v1))))
 
-(define (dot v0 v1)
-  (+ (* (vec-x v0) (vec-x v1))
-     (* (vec-y v0) (vec-y v1))
-     (* (vec-z v0) (vec-z v1))))
+(define (dot-product v0 v1)
+  (+ (* (vector-x v0) (vector-x v1))
+     (* (vector-y v0) (vector-y v1))
+     (* (vector-z v0) (vector-z v1))))
 
 
 (@htdf mag)
 (@signature Vector -> Number)
 ;; produce magnitude of given vector
-(check-expect (mag (make-vec 0 0 0)) 0)
-(check-within (mag (make-vec 1 1 1)) (sqrt 3) (expt 10 -10))
-(check-expect (mag (make-vec -2 3 -6)) 7)
+(check-expect (mag (make-vector 0 0 0)) 0)
+(check-within (mag (make-vector 1 1 1)) (sqrt 3) (expt 10 -10))
+(check-expect (mag (make-vector -2 3 -6)) 7)
 
 ;(define (mag v) 0) ;stub
 
@@ -405,33 +407,36 @@
 
 (@template
  (define (mag v)
-   (... (vec-x v)
-        (vec-y v)
-        (vec-z v))))
+   (... (vector-x v)
+        (vector-y v)
+        (vector-z v))))
 
 (define (mag v)
-  (sqrt (+ (sqr (vec-x v)) (sqr (vec-y v)) (sqr (vec-z v)))))
+  (sqrt (+
+         (sqr (vector-x v))
+         (sqr (vector-y v))
+         (sqr (vector-z v)))))
 
 
-(@htdf vec)
+(@htdf points->vector)
 (@signature Point Point -> Vector)
 ;; produce vector from first to second point
-(check-expect (to-vec (make-point 0 0 0)
-                      (make-point 0 0 0))
-              (make-vec 0 0 0))
-(check-expect (to-vec (make-point 0 0 0)
-                      (make-point 1 -2 3))
-              (make-vec 1 -2 3))
-(check-expect (to-vec (make-point 1.2 -3.4 5.6)
-                      (make-point 1.3 5.7 -9.1))
-              (make-vec 0.1 9.1 -14.7))
+(check-expect (points->vector (make-point 0 0 0)
+                              (make-point 0 0 0))
+              (make-vector 0 0 0))
+(check-expect (points->vector (make-point 0 0 0)
+                              (make-point 1 -2 3))
+              (make-vector 1 -2 3))
+(check-expect (points->vector (make-point 1.2 -3.4 5.6)
+                              (make-point 1.3 5.7 -9.1))
+              (make-vector 0.1 9.1 -14.7))
 
-;(define (vec p0 p1) (make-vec 0 0 0)) ;stub
+;(define (points->vector p0 p1) (make-vector 0 0 0)) ;stub
 
 (@template-origin Point)
 
 (@template
- (define (vec p0 p1)
+ (define (points->vector p0 p1)
    (... (point-x p0)
         (point-y p0)
         (point-z p0)
@@ -439,10 +444,10 @@
         (point-y p1)
         (point-z p1))))
 
-(define (to-vec p0 p1)
-  (make-vec (- (point-x p1) (point-x p0))
-            (- (point-y p1) (point-y p0))
-            (- (point-z p1) (point-z p0))))
+(define (points->vector p0 p1)
+  (make-vector (- (point-x p1) (point-x p0))
+               (- (point-y p1) (point-y p0))
+               (- (point-z p1) (point-z p0))))
 
 
 (@htdf normal)
@@ -453,62 +458,68 @@
                                 (make-point 2 0 0)
                                 (make-point 0 2 0)
                                 "black"))
-              (make-vec 0 0 4))
+              (make-vector 0 0 4))
 (check-expect (normal (make-tri (make-point 0 0 0)
                                 (make-point 0 2 0)
                                 (make-point 2 0 0)
                                 "black"))
-              (make-vec 0 0 -4))
+              (make-vector 0 0 -4))
 
-;(define (normal t) (make-vec 0 0 0)) ;stub
+;(define (normal t) (make-vector 0 0 0)) ;stub
 
 (@template-origin fn-composition)
 
+(@template
+ (define (normal t)
+   (cross-product (points->vector (tri-v1 t) (tri-v0 t))
+                  (points->vector (tri-v2 t) (tri-v1 t)))))
+
 (define (normal t)
-  (cross (to-vec (tri-vertex-1 t) (tri-vertex-0 t))
-         (to-vec (tri-vertex-2 t) (tri-vertex-1 t))))
+  (cross-product (points->vector (tri-v1 t) (tri-v0 t))
+                 (points->vector (tri-v2 t) (tri-v1 t))))
 
 ;;
 ;; WORLD
 ;;
 
-(@htdd GuiState)
-(define-struct gui (file help add sel))
-;; GuiState is (make-gui Boolean Boolean Boolean Natural)
+(@htdd GUIState)
+(define-struct gui-state (file help add selection))
+;; GUIState is (make-gui-state Boolean Boolean Boolean Natural)
 ;; interp. GUI dropdown states for File and Help menus and object creation; 
-;;         sel is 1-based index of selected object, 0 if no selection
-;; CONSTRAINT: 
-(define GUI1 (make-gui false false false 0))
-(define GUI2 (make-gui true  false false 0))
-(define GUI3 (make-gui false false true  2))
+;;         selection is 1-based index of selected object, 0 if no selection
+;; CONSTRAINT: !!!
+(define GUI1 (make-gui-state false false false 0))
+(define GUI2 (make-gui-state true  false false 0))
+(define GUI3 (make-gui-state false false true  2))
 
-(@dd-template-rules compound) ;5 fields
+(@dd-template-rules compound) ;4 fields
 
-(define (fn-for-gui gui)
-  (... (gui-file gui)
-       (gui-help gui)
-       (gui-add  gui)
-       (gui-sel  gui)))
+(define (fn-for-gui-state gs)
+  (... (gui-state-file gs)        ;Boolean
+       (gui-state-help gs)        ;Boolean
+       (gui-state-add gs)         ;Boolean
+       (gui-state-selection gs))) ;Natural
 
 
 (@htdd Camera)
-(define-struct camera (gui objs pos light time))
-;; Camera is (make-camera GuiState ListOfObject Point Point Natural
+(define-struct camera (gui objects position light time))
+;; Camera is (make-camera GUIState ListOfObject Point Point Natural)
 ;; interp. GUI state, object list, position of camera/light, ticks since input
 (define CAM1 (make-camera GUI1 empty (make-point 1 1 1) (make-point 2 2 2) 0))
 
-(@dd-template-rules compound ;5 fields
-                    ref      ;GuiState
-                    ref      ;ListOfObject
-                    ref      ;Point
-                    ref)     ;Point
+(@dd-template-rules compound             ;5 fields
+                    ref                  ;GuiState
+                    ref                  ;ListOfObject
+                    ref                  ;Point
+                    ref                  ;Point
+                    atomic-non-distinct) ;Natural
 
 (define (fn-for-cam cam)
-  (... (fn-for-gui (camera-gui cam))
-       (fn-for-loo (camera-objs cam))
-       (fn-for-point (camera-pos cam))
+  (... (fn-for-gui-state (camera-gui-state cam))
+       (fn-for-loo (camera-objects cam))
+       (fn-for-point (camera-position cam))
        (fn-for-point (camera-light cam))
-       (camera-time cam)))
+       (camera-time cam))) ;Natural
 
 
 (@htdf main)
@@ -529,6 +540,7 @@
 (@htdf tick)
 (@signature Camera -> Camera)
 ;; increment ticks since last user interaction
+;; !!!
 
 (define (tick cam) cam) ;stub
   
@@ -536,33 +548,39 @@
 (@htdf render)
 (@signature Camera -> Image)
 ;; render ...
-;; !!!
+;; !!! purpose and examples
 ;(define (render cam) MTS) ;stub
 
 (@template-origin Camera)
 
 (@template
  (define (render cam)
-   (... (camera-gui cam)
-        (camera-objs cam)
-        (camera-pos cam)
-        (camera-light cam))))
+   (... (fn-for-gui-state (camera-gui-state cam))
+        (fn-for-loo (camera-objects cam))
+        (fn-for-point (camera-position cam))
+        (fn-for-point (camera-light cam))
+        (camera-time cam))))
 
 (define (render cam)
   (overlay (render-gui (camera-gui cam))
-           (render-objs (camera-objs cam)
-                        (camera-pos cam)
-                        (camera-light cam))))
+           (render-objects (camera-objects cam)
+                           (camera-position cam)
+                           (camera-light cam))))
 
 (@htdf render-gui)
-(@signature GuiState -> Image)
+(@signature GUIState -> Image)
 ;; renders the gui and dropdowns
 ;; !!!
-;(define (render-gui g) MTS) ;stub
 (check-expect (render-gui GUI1) MTS)
 
-(define (render-gui gui) MTS)
-(define (render-objs objs pos light) MTS)
+(define (render-gui gui) MTS) ;stub
+
+
+(@htdf render-objects)
+(@signature ListOfObject Point Point -> Image)
+;; !!!
+
+(define (render-objects obj pos light) MTS) ;stub
 
 
 (@htdf mouse-handler)
