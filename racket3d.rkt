@@ -71,7 +71,7 @@
 (define TRIANGLE1 (make-tri (make-point 0 1 1)
                             (make-point 1 0 1)
                             (make-point 0 0 1)
-                            "black"))                 ;triangles for a
+                            "black"))          ;triangles for a
 (define TRIANGLE2 (make-tri (make-point 0 1 1) ;rectangular mesh
                             (make-point 1 1 1)
                             (make-point 1 0 1)
@@ -81,17 +81,16 @@
                             (make-point 0 0 1)
                             "red"))
 
-(@dd-template-rules compound             ;4 fields
-                    ref                  ;(tri-v0 t) is Point
-                    ref                  ;(tri-v1 t) is Point
-                    ref                  ;(tri-v2 t) is Point
-                    atomic-non-distinct) ;Color
+(@dd-template-rules compound ;4 fields
+                    ref      ;(tri-v0 Triangle) is Point
+                    ref      ;(tri-v1 Triangle) is Point
+                    ref)     ;(tri-v2 Triangle) is Point
 
 (define (fn-for-triangle t)
   (... (fn-for-point (tri-v0 t)) 
        (fn-for-point (tri-v1 t))
        (fn-for-point (tri-v2 t))
-       (tri-color t)))                 ;Color
+       (tri-color t)))           ;Color
 
 ;;
 ;; INTERNAL DEFINITIONS
@@ -114,13 +113,9 @@
                              (make-euler -50 -30 -15)
                              -5 0 -4 "red"))
 
-(@dd-template-rules compound             ;6 fields
-                    ref                  ;(cuboid-position c) is Point
-                    ref                  ;(cuboid-rotation c) is Euler
-                    atomic-non-distinct  ;Number
-                    atomic-non-distinct  ;Number
-                    atomic-non-distinct  ;Number
-                    atomic-non-distinct) ;Color
+(@dd-template-rules compound ;6 fields
+                    ref      ;(cuboid-position Cuboid) is Point
+                    ref)     ;(cuboid-rotation Cuboid) is Euler
 
 (define (fn-for-cuboid c)
   (... (fn-for-point (cuboid-position c))
@@ -148,13 +143,9 @@
                                    (make-euler -100 -120 140)
                                    -3 -4 -5 "red"))
 
-(@dd-template-rules compound             ;6 fields
-                    ref                  ;(icosphere-position i) is Point
-                    ref                  ;(icosphere-rotation i) is Euler
-                    atomic-non-distinct  ;Number
-                    atomic-non-distinct  ;Number
-                    atomic-non-distinct  ;Number
-                    atomic-non-distinct) ;Color
+(@dd-template-rules compound ;6 fields
+                    ref      ;(icosphere-position Icosphere) is Point
+                    ref)     ;(icosphere-rotation Icosphere) is Euler
 
 (define (fn-for-icosphere i)
   (... (fn-for-point (icosphere-position i))
@@ -217,10 +208,13 @@
 (define OBJECT2 ICOSPHERE1)
 (define OBJECT3 MESH2)
 
-(@dd-template-rules one-of ;3 cases
-                    ref    ;Cuboid   
-                    ref    ;Icosphere
-                    ref)   ;Mesh
+(@dd-template-rules one-of   ;3 cases
+                    compound ;Cuboid
+                    ref      ;Cuboid
+                    compound ;Icosphere
+                    ref      ;Icosphere
+                    compound ;Mesh
+                    ref)     ;Mesh
 
 (define (fn-for-object o)
   (cond [(cuboid? o)
@@ -507,19 +501,18 @@
 ;; interp. GUI state, object list, position of camera/light, ticks since input
 (define CAM1 (make-camera GUI1 empty (make-point 1 1 1) (make-point 2 2 2) 0))
 
-(@dd-template-rules compound             ;5 fields
-                    ref                  ;GuiState
-                    ref                  ;ListOfObject
-                    ref                  ;Point
-                    ref                  ;Point
-                    atomic-non-distinct) ;Natural
+(@dd-template-rules compound ;5 fields
+                    ref      ;(camera-gui Camera) is GUIState
+                    ref      ;(camera-objects Camera) is ListOfObject
+                    ref      ;(camera-position Camera) is Point
+                    ref)     ;(camera-light Camera) is Point
 
 (define (fn-for-cam cam)
   (... (fn-for-gui-state (camera-gui-state cam))
        (fn-for-loo (camera-objects cam))
        (fn-for-point (camera-position cam))
        (fn-for-point (camera-light cam))
-       (camera-time cam))) ;Natural
+       (camera-time cam)))                       ;Natural
 
 
 (@htdf main)
