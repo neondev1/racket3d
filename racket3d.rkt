@@ -1,11 +1,12 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname racket3d) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname racket3d) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
 (require spd/tags)
 (require 2htdp/image)
 (require 2htdp/universe)
 
 (@htdw Camera)
+
 ;;
 ;; CONSTANTS
 ;;
@@ -24,6 +25,8 @@
 
 (define TPS 60)
 (define INACTIVE-DELAY (* TPS 20))
+
+(define APPROX (expt 10 -12))
 
 ;;
 ;; BASIC DATA DEFINITIONS
@@ -392,7 +395,7 @@
 (@signature Vector -> Number)
 ;; produce magnitude of given vector
 (check-expect (mag (make-vector 0 0 0)) 0)
-(check-within (mag (make-vector 1 1 1)) (sqrt 3) (expt 10 -10))
+(check-within (mag (make-vector 1 1 1)) (sqrt 3) APPROX)
 (check-expect (mag (make-vector -2 3 -6)) 7)
 
 ;(define (mag v) 0) ;stub
@@ -406,10 +409,9 @@
         (vector-z v))))
 
 (define (mag v)
-  (sqrt (+
-         (sqr (vector-x v))
-         (sqr (vector-y v))
-         (sqr (vector-z v)))))
+  (sqrt (+ (sqr (vector-x v))
+           (sqr (vector-y v))
+           (sqr (vector-z v)))))
 
 
 (@htdf points->vector)
@@ -472,6 +474,34 @@
   (cross-product (points->vector (tri-v1 t) (tri-v0 t))
                  (points->vector (tri-v2 t) (tri-v1 t))))
 
+
+(@htdf vector-angle)
+(@signature Vector Vector -> Number)
+;; produce angle between two given vectors in radians
+;; CONSTRAINT: both vectors must be nonzero
+(check-expect (vector-angle (make-vector 1 0 0)
+                            (make-vector 1 0 0))
+              0)
+(check-within (vector-angle (make-vector 1 0 0)
+                            (make-vector 0 2 3))
+              (/ pi 2) APPROX)
+(check-within (vector-angle (make-vector 1 0 0)
+                            (make-vector -1 0 0))
+              pi APPROX)
+
+;(define (vector-angle v0 v1) 0) ;stub
+
+(@template-origin fn-composition)
+
+(@template
+ (define (vector-angle v0 v1)
+   (acos (/ (dot-product v0 v1)
+            (* (mag v0) (mag v1))))))
+
+(define (vector-angle v0 v1)
+  (acos (/ (dot-product v0 v1)
+           (* (mag v0) (mag v1)))))
+
 ;;
 ;; WORLD
 ;;
@@ -481,7 +511,7 @@
 ;; GUIState is (make-gui-state Boolean Boolean Boolean Natural)
 ;; interp. GUI dropdown states for File and Help menus and object creation; 
 ;;         selection is 1-based index of selected object, 0 if no selection
-;; CONSTRAINT: !!!
+;; CONSTRAINT: selection must be less than or equal to total object count
 (define GUI1 (make-gui-state false false false 0))
 (define GUI2 (make-gui-state true  false false 0))
 (define GUI3 (make-gui-state false false true  2))
@@ -498,7 +528,8 @@
 (@htdd Camera)
 (define-struct camera (gui objects position light time))
 ;; Camera is (make-camera GUIState ListOfObject Point Point Natural)
-;; interp. GUI state, object list, position of camera/light, ticks since input
+;; interp. GUI state, object list, position of camera/light, time in ticks since
+;;         last user interaction. The viewport camera always faces (0, 0, 0).
 (define CAM1 (make-camera GUI1 empty (make-point 1 1 1) (make-point 2 2 2) 0))
 
 (@dd-template-rules compound ;5 fields
