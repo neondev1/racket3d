@@ -21,7 +21,7 @@ jobs:
     - name: Run tests
       id: run_tests
       run: |
-        xvfb-run -a raco test racket3d.rkt &> output.txt
+        echo "$(xvfb-run -a raco test racket3d.rkt 2>&1)" > output.txt
         cat output.txt
         printf "\`\`\`\n$(cat output.txt)\n\`\`\`" > $GITHUB_STEP_SUMMARY
         echo "FAIL=$([[ $? != 0 || "$(cat $GITHUB_STEP_SUMMARY)" =~ "fail" ]] && echo 1 || echo 0)" > $GITHUB_OUTPUT
