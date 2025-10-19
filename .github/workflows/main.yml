@@ -23,6 +23,7 @@ jobs:
         cat output.txt
         printf "\`\`\`\n$(cat output.txt)\n\`\`\`" > $GITHUB_STEP_SUMMARY
         echo "FAIL=$([[ $? != 0 || "$(cat $GITHUB_STEP_SUMMARY)" =~ "fail" ]] && echo 1 || echo 0)" > $GITHUB_OUTPUT
+        cat $GITHUB_OUTPUT #for testing
     - name: Check for failure
-      if: ${{ steps.run_tests.outputs.FAIL }} != 0
+      if: ${{ steps.run_tests.outputs.FAIL }} != '0'
       run: exit 1
