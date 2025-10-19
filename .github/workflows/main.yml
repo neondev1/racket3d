@@ -24,7 +24,7 @@ jobs:
         echo "$(xvfb-run -a raco test racket3d.rkt 2>&1)" > output.txt
         cat output.txt
         printf "\`\`\`\n$(cat output.txt)\n\`\`\`" > $GITHUB_STEP_SUMMARY
-        echo "FAIL=$([[ $? != 0 || "$(cat $GITHUB_STEP_SUMMARY)" =~ "fail" ]] && echo 1 || echo 0)" > $GITHUB_OUTPUT
+        echo "FAIL=$([[ "$(cat output.txt)" =~ "racket3d.rkt:" || "$(cat output.txt)" =~ "fail" ]] && echo 1 || echo 0)" > $GITHUB_OUTPUT
     - name: Check for failure
       if: ${{ steps.run_tests.outputs.FAIL != 0 }}
       run: exit 1
