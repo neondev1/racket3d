@@ -11,10 +11,14 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y racket
+    - name: Install SPD package
+      run: |
+        curl https://cs110.students.cs.ubc.ca/spd.plt >> spd.plt
+        raco setup -A spd.plt
     - name: Run tests
       id: run_tests
       run: |
-        echo "```$(raco test racket3d.rkt)```" >> $GITHUB_STEP_SUMMARY
+        echo "```$(raco test racket3d.rkt 2>&1)```" >> $GITHUB_STEP_SUMMARY
         echo "FAIL=$([[ $? != 0 || "$(cat $GITHUB_STEP_SUMMARY)" =~ "fail" ]] && echo 1 || echo 0)" >> $GITHUB_OUTPUT
     - name: Check for failure
       if: ${{ steps.run_tests.outputs.FAIL }} != 0
