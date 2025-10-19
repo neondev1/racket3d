@@ -1,6 +1,8 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-beginner-reader.ss" "lang")((modname racket3d) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
+a
+
 (require spd/tags)
 (require 2htdp/image)
 (require 2htdp/universe)
@@ -136,8 +138,8 @@
 (define ICOSPHERE1 (make-icosphere (make-point 0 0 0) ;sphere
                                    (make-euler 0 0 0)
                                    1 1 1 "black")) 
-(define ICOSPHERE2 (make-icosphere (make-point 0 0 0) ;rotated sphere is
-                                   (make-euler 23 37 79)      ;nearly identical
+(define ICOSPHERE2 (make-icosphere (make-point 0 0 0)    ;rotated sphere is
+                                   (make-euler 23 37 79) ;nearly identical
                                    1 1 1 "black")) 
 (define ICOSPHERE3 (make-icosphere (make-point 1 3 5)
                                    (make-euler 100 120 140)
