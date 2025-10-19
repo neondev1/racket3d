@@ -1,0 +1,21 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - name: Install Racket
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y racket
+    - name: Run tests
+      id: run_tests
+      run: |
+        echo "```$(raco test racket3d.rkt)```" >> $GITHUB_STEP_SUMMARY
+        echo "FAIL=$([[ $? != 0 || "$(cat $GITHUB_STEP_SUMMARY)" =~ "fail" ]] && echo 1 || echo 0)" >> $GITHUB_OUTPUT
+    - name: Check for failure
+      if: ${{ steps.run_tests.outputs.FAIL }} != 0
+      run: exit 1
