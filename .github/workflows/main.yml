@@ -7,19 +7,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v5
-    - name: Install Racket
+    - name: Install Racket and Xvfb
       run: |
         sudo apt-get update
         sudo apt-get install -y racket
+        sudo apt-get install -y xvfb
     - name: Install SPD package
       run: |
-        curl https://cs110.students.cs.ubc.ca/spd.plt >> spd.plt
+        curl https://cs110.students.cs.ubc.ca/spd.plt > spd.plt
         raco setup -A spd.plt
     - name: Run tests
       id: run_tests
       run: |
-        printf "\`\`\`\n$(raco test racket3d.rkt 2>&1)\n\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "FAIL=$([[ $? != 0 || "$(cat $GITHUB_STEP_SUMMARY)" =~ "fail" ]] && echo 1 || echo 0)" >> $GITHUB_OUTPUT
+        xvfb-run -a raco test racket3d.rkt &> output.txt
+        cat output.txt
+        printf "\`\`\`\n$(cat output.txt)\n\`\`\`" > $GITHUB_STEP_SUMMARY
+        echo "FAIL=$([[ $? != 0 || "$(cat $GITHUB_STEP_SUMMARY)" =~ "fail" ]] && echo 1 || echo 0)" > $GITHUB_OUTPUT
     - name: Check for failure
       if: ${{ steps.run_tests.outputs.FAIL }} != 0
       run: exit 1
