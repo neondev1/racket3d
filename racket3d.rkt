@@ -1,8 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-beginner-reader.ss" "lang")((modname racket3d) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
-(require asdfghjkl) ;for testing workflow
-
 (require spd/tags)
 (require 2htdp/image)
 (require 2htdp/universe)
@@ -236,10 +234,7 @@
 ;;  - (cons Object ListOfObject)
 ;; interp. a list of all objects to be rendered
 (define LOO1 empty)
-(define LOO2 (cons OBJECT1
-                   (cons OBJECT2
-                         (cons OBJECT3
-                               empty))))
+(define LOO2 (cons OBJECT1 (cons OBJECT2 (cons OBJECT3 empty))))
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;empty
@@ -255,7 +250,7 @@
               (fn-for-loo (rest loo)))]))
 
 ;;
-;; LIGHTING DATA DEFINITIONS
+;; VECTOR DATA DEFINITION
 ;;
 
 (@htdd Vector)
@@ -274,8 +269,13 @@
        (vector-y v)   ;Number
        (vector-z v))) ;Number
 
+
+(@htdd Plane)
+(define-struct plane (position v0 v1))
+;; Plane is (make-plane Point Vector Vector)
+
 ;;
-;; LIGHTING FUNCTIONS
+;; VECTOR ARITHMETIC FUNCTIONS
 ;;
 
 (@htdf scalar-multiply)
@@ -450,7 +450,7 @@
 
 (@htdf normal)
 (@signature Triangle -> Vector)
-;; produce vector normal to given triangle
+;; produce a vector normal to given triangle with unspecified magnitude
 ;; CONSTRAINT: given triangle must be non-degenerate
 (check-expect (normal (make-tri (make-point 0 0 0)
                                 (make-point 2 0 0)
@@ -503,6 +503,81 @@
 (define (vector-angle v0 v1)
   (acos (/ (dot-product v0 v1)
            (* (mag v0) (mag v1)))))
+
+;;
+;; PROJECTION DATA DEFININTIONS
+;;
+
+(@htdd Element)
+(define-struct element (face centroid))
+;; Element is (make-z-element Triangle Point)
+;; interp. a triangular mesh face and its centroid, used to construct buffer
+(define ELEMENT1 (make-element TRIANGLE1 (make-point 1/3 1/3 1)))
+(define ELEMENT2 (make-element TRIANGLE2 (make-point 1/3 1/3 1)))
+(define ELEMENT3 (make-element TRIANGLE3 (make-point 0 2/3 1)))
+
+(@dd-template-rules compound ;2 fields
+                    ref      ;Triangle
+                    ref)     ;Point
+
+(define (fn-for-element e)
+  (... (fn-for-triangle (element-face e))
+       (fn-for-point (element-centroid e))))
+
+
+(@htdd ElementBuffer)
+;; ElementBuffer is one of:
+;;  - empty
+;;  - (cons Element ElementBuffer)
+;; interp. a buffer, storing depth information of every mesh face to be
+;;         rendered; elements are sorted by Euclidean distance from camera
+;; CONSTRAINT: no two elements can intersect each other
+(define EBUF1 empty)
+(define EBUF2 (cons ELEMENT1 (cons ELEMENT2 (cons ELEMENT3 empty))))
+
+(@dd-template-rules one-of          ;2 fields
+                    atomic-distinct ;empty
+                    compound        ;(cons ZIndex ZBuffer)
+                    ref             ;(first ZBuffer) is ZIndex
+                    self-ref)       ;(rest ZBuffer) is ZBuffer
+
+(define (fn-for-ebuf ebuf)
+  (cond [(empty? ebuf)
+         (...)]
+        [else
+         (... (fn-for-element (first ebuf))
+              (fn-for-ebuf (rest ebuf)))]))
+
+;;
+;; PROJECTION FUNCTIONS
+;;
+
+#|
+TODO: Subdividing overlapping mesh faces
+!!!
+
+BASIC PROCEDURE
+
+For each mesh face added to buffer, perform a comparison with each existing
+element as follows:
+1. Compute distance between centroids. If distance is too great (rigorous
+   definition of "too great" TBD), end.
+2. Compute line of intersection between planes containing both triangles.
+3. Check if computed line of intersection intersects both triangles.
+   3a. Performing 2D checks on two sides of each triangle is sufficient.
+   3b. If either of the triangles have both intersection points very close
+       (rigorous definition TBD) to a vertex, end.
+4. If previous check returned false, end.
+5. Subdivide both triangles along line of intersection.
+   5a. For each subdivision:
+   5b. Determine which two edges are intersected by the line.
+   5c. Create a mesh face from the triangle created by cutting along the line.
+   5d. Divide remaining quadrilateral into two triangular mesh faces.
+6. The existing mesh face that has been subdivided is reinserted into the list
+   without checks. The new mesh face is inserted normally (with this procedure).
+
+Note: "End" refers to inserting the mesh face directly without any subdivision.
+|#
 
 ;;
 ;; WORLD
