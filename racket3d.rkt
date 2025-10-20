@@ -67,9 +67,9 @@
 
 
 (@htdd Triangle)
-(define-struct tri (v0 v1 v2 color))
-;; Triangle is (make-tri Point Point Point Color)
-;; interp. the three vertices and fill color of a triangle
+(define-struct tri (v0 v1 v2 colour))
+;; Triangle is (make-tri Point Point Point Colour)
+;; interp. the three vertices and fill colour of a triangle
 ;; CONSTRAINT: No two vertices should be equal
 (define TRIANGLE1 (make-tri (make-point 0 1 1)
                             (make-point 1 0 1)
@@ -93,15 +93,15 @@
   (... (fn-for-point (tri-v0 t)) 
        (fn-for-point (tri-v1 t))
        (fn-for-point (tri-v2 t))
-       (tri-color t)))           ;Color
+       (tri-colour t)))           ;Colour
 
 ;;
 ;; INTERNAL DEFINITIONS
 ;;
 
 (@htdd Cuboid)
-(define-struct cuboid (position rotation x-scale y-scale z-scale color))
-;; Cuboid is (make-cuboid Point Euler Number Number Number Color)
+(define-struct cuboid (position rotation x-scale y-scale z-scale colour))
+;; Cuboid is (make-cuboid Point Euler Number Number Number Colour)
 ;; interp. the position, orientation, x, y, z scales and colour of a cuboid
 (define CUBOID1 (make-cuboid (make-point 0 0 0) ;Unit cube
                              (make-euler 0 0 0)
@@ -126,12 +126,12 @@
        (cuboid-x-scale c)                 ;Number
        (cuboid-y-scale c)                 ;Number
        (cuboid-z-scale c)                 ;Number
-       (cuboid-color c)))                 ;Color
+       (cuboid-colour c)))                ;Colour
 
 
 (@htdd Icosphere)
-(define-struct icosphere (position rotation x-scale y-scale z-scale color))
-;; Icosphere is (make-icosphere Point Euler Number Number Number Color)
+(define-struct icosphere (position rotation x-scale y-scale z-scale colour))
+;; Icosphere is (make-icosphere Point Euler Number Number Number Colour)
 ;; interp. the position, orientation, x, y, z scales and colour of an icosphere
 (define ICOSPHERE1 (make-icosphere (make-point 0 0 0) ;sphere
                                    (make-euler 0 0 0)
@@ -156,7 +156,7 @@
        (icosphere-x-scale i)                 ;Number
        (icosphere-y-scale i)                 ;Number
        (icosphere-z-scale i)                 ;Number
-       (icosphere-color i)))                 ;Color
+       (icosphere-colour i)))                ;Colour
 
 
 (@htdd Mesh)
@@ -196,6 +196,22 @@
         [else
          (... (fn-for-triangle (first m))
               (fn-for-mesh (rest m)))]))
+
+
+(@htdd Colour)
+;; Colour is Color
+;; interp. the Color primitive data type provided by 2htdp/image,
+;;         except with a Canadian English name.
+;;         Used in place of Color in this program. 
+
+(define COLOUR1 "black")
+(define COLOUR2 "red")
+(define COLOUR3 (make-color 255 0 0))
+
+(@dd-template-rules atomic-non-distinct)
+
+(define (fn-for-colour c)
+  (... c))
 
 ;;
 ;; PUBLIC DEFINITIONS
