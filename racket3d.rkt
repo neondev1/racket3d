@@ -289,6 +289,20 @@
 (@htdd Plane)
 (define-struct plane (position v0 v1))
 ;; Plane is (make-plane Point Vector Vector)
+;; interp. a plane in vector equation form
+(define PLANE1 (make-plane POINT1 VECTOR2 VECTOR3))
+; !!! add more examples
+
+(@dd-template-rules compound ;3 fields
+                    ref      ;Point
+                    ref      ;Vector
+                    ref)     ;Vector
+
+(define (fn-for-plane p)
+  (... (plane-position p)
+       (plane-v0 p)
+       (plane-v1 p)))
+
 
 ;;
 ;; VECTOR ARITHMETIC FUNCTIONS
