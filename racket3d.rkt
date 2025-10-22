@@ -299,9 +299,9 @@
                     ref)     ;Vector
 
 (define (fn-for-plane p)
-  (... (plane-position p)
-       (plane-v0 p)
-       (plane-v1 p)))
+  (... (fn-for-point (plane-position p)) 
+       (fn-for-vector (plane-v0 p))
+       (fn-for-vector (plane-v1 p))))
 
 
 ;;
