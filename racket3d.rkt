@@ -32,14 +32,30 @@
 ;; BASIC DATA DEFINITIONS
 ;;
 
+(@htdd Colour)
+;; Colour is Color
+;; interp. the Color primitive data type provided by 2htdp/image,
+;;         except with a Canadian English name.
+;;         Used in place of Color in this program. 
+
+(define COLOUR1 "black")
+(define COLOUR2 "red")
+(define COLOUR3 (make-color 255 0 0))
+
+(@dd-template-rules atomic-non-distinct)
+
+(define (fn-for-colour c)
+  (... c))
+
+
 (@htdd Point)
 (define-struct point (x y z))
 ;; Point is (make-point Number Number Number)
 ;; interp. the x, y and z coordinates of a point
-(define POINT1 (make-point 0 0 0))
-(define POINT2 (make-point 1 1 1))
-(define POINT3 (make-point 0.1 1.2 2.3))
-(define POINT4 (make-point -0.1 0 -1))
+(define ORIGIN (make-point 0 0 0))
+(define POINT1 (make-point 1 1 1))
+(define POINT2 (make-point 0.1 1.2 2.3))
+(define POINT3 (make-point -0.1 0 -1))
 
 (@dd-template-rules compound) ;3 fields
 
@@ -93,7 +109,7 @@
   (... (fn-for-point (tri-v0 t)) 
        (fn-for-point (tri-v1 t))
        (fn-for-point (tri-v2 t))
-       (tri-colour t)))           ;Colour
+       (tri-colour t)))          ;Colour
 
 ;;
 ;; INTERNAL DEFINITIONS
@@ -103,7 +119,7 @@
 (define-struct cuboid (position rotation x-scale y-scale z-scale colour))
 ;; Cuboid is (make-cuboid Point Euler Number Number Number Colour)
 ;; interp. the position, orientation, x, y, z scales and colour of a cuboid
-(define CUBOID1 (make-cuboid (make-point 0 0 0) ;Unit cube
+(define CUBOID1 (make-cuboid ORIGIN ;Unit cube
                              (make-euler 0 0 0)
                              1 1 1 "black")) 
 (define CUBOID2 (make-cuboid (make-point 1 2 3)
@@ -133,10 +149,10 @@
 (define-struct icosphere (position rotation x-scale y-scale z-scale colour))
 ;; Icosphere is (make-icosphere Point Euler Number Number Number Colour)
 ;; interp. the position, orientation, x, y, z scales and colour of an icosphere
-(define ICOSPHERE1 (make-icosphere (make-point 0 0 0) ;sphere
+(define ICOSPHERE1 (make-icosphere ORIGIN ;sphere
                                    (make-euler 0 0 0)
                                    1 1 1 "black")) 
-(define ICOSPHERE2 (make-icosphere (make-point 0 0 0)    ;rotated sphere is
+(define ICOSPHERE2 (make-icosphere ORIGIN                ;rotated sphere is
                                    (make-euler 23 37 79) ;nearly identical
                                    1 1 1 "black")) 
 (define ICOSPHERE3 (make-icosphere (make-point 1 3 5)
@@ -198,21 +214,6 @@
               (fn-for-mesh (rest m)))]))
 
 
-(@htdd Colour)
-;; Colour is Color
-;; interp. the Color primitive data type provided by 2htdp/image,
-;;         except with a Canadian English name.
-;;         Used in place of Color in this program. 
-
-(define COLOUR1 "black")
-(define COLOUR2 "red")
-(define COLOUR3 (make-color 255 0 0))
-
-(@dd-template-rules atomic-non-distinct)
-
-(define (fn-for-colour c)
-  (... c))
-
 ;;
 ;; PUBLIC DEFINITIONS
 ;;
@@ -273,10 +274,10 @@
 (define-struct vector (x y z))
 ;; Vector is (make-vector Number Number Number)
 ;; interp. the x, y and z components of a 3D vector
-(define VECTOR1 (make-vector 0 0 0)) ;zero vector
-(define VECTOR2 (make-vector 0 0 1)) ;unit vector normal to xy plane
-(define VECTOR3 (make-vector 1.3 3.5 5.7))
-(define VECTOR4 (make-vector -1.3 -3.5 -5.7))
+(define ZERO-VECTOR (make-vector 0 0 0)) ;zero vector
+(define VECTOR1 (make-vector 0 0 1))     ;unit vector normal to xy plane
+(define VECTOR2 (make-vector 1.3 3.5 5.7))
+(define VECTOR3 (make-vector -1.3 -3.5 -5.7))
 
 (@dd-template-rules compound) ;3 fields
 
@@ -290,8 +291,13 @@
 (define-struct plane (position v0 v1))
 ;; Plane is (make-plane Point Vector Vector)
 ;; interp. a plane in vector equation form
-(define PLANE1 (make-plane POINT1 VECTOR2 VECTOR3))
-; !!! add more examples
+;; CONSTRAINT: both vectors must be nonzero and non-parallel
+(define PLANE1 (make-plane ORIGIN
+                           (make-vector 1 0 0)
+                           (make-vector 0 1 0)))       ;xy plane example
+(define PLANE2 (make-plane (make-point 1 2 3)
+                           (make-vector 2.4 -5.7 -8.9) ;the vectors do not
+                           (make-vector 3 -6 10)))     ;need to be orthogonal
 
 (@dd-template-rules compound ;3 fields
                     ref      ;Point
@@ -303,10 +309,67 @@
        (fn-for-vector (plane-v0 p))
        (fn-for-vector (plane-v1 p))))
 
-
 ;;
 ;; VECTOR ARITHMETIC FUNCTIONS
 ;;
+
+(@htdf sum)
+(@signature Vector Vector -> Vector)
+;; produce sum of two vectors
+(check-expect (sum (make-vector 0 0 0) (make-vector 0 0 0))
+              (make-vector 0 0 0))
+(check-expect (sum (make-vector 2 3 4) (make-vector 0 0 0))
+              (make-vector 2 3 4))
+(check-expect (sum (make-vector 1 2 3) (make-vector 1.2 2.3 -3.4))
+              (make-vector 2.2 4.3 -0.4))
+
+;(define (sum v0 v1) ZERO-VECTOR) ;stub
+
+(@template-origin Vector)
+
+(@template
+ (define (sum v0 v1)
+   (... (vector-x v0)
+        (vector-y v0)
+        (vector-z v0)
+        (vector-x v1)
+        (vector-y v1)
+        (vector-z v1))))
+
+(define (sum v0 v1)
+  (make-vector (+ (vector-x v0) (vector-x v1))
+               (+ (vector-y v0) (vector-y v1))
+               (+ (vector-z v0) (vector-z v1))))
+
+
+(@htdf difference)
+(@signature Vector Vector -> Vector)
+;; produce difference of two vectors
+(check-expect (difference (make-vector 0 0 0) (make-vector 0 0 0))
+              (make-vector 0 0 0))
+(check-expect (difference (make-vector 0 0 0) (make-vector 2 -4 6))
+              (make-vector -2 4 -6))
+(check-expect (difference (make-vector 3 4 5) (make-vector 1.2 2.3 3.4))
+              (make-vector 1.8 1.7 1.6))
+
+;(define (difference v0 v1) ZERO-VECTOR) ;stub
+
+(@template-origin Vector)
+
+(@template
+ (define (difference v0 v1)
+   (... (vector-x v0)
+        (vector-y v0)
+        (vector-z v0)
+        (vector-x v1)
+        (vector-y v1)
+        (vector-z v1))))
+
+(define (difference v0 v1)
+  (make-vector (- (vector-x v0) (vector-x v1))
+               (- (vector-y v0) (vector-y v1))
+               (- (vector-z v0) (vector-z v1))))
+
 
 (@htdf scalar-multiply)
 (@signature Vector Number -> Vector)
@@ -316,7 +379,7 @@
 (check-expect (scalar-multiply (make-vector 1.2 3.4 -5.6) -3)
               (make-vector -3.6 -10.2 16.8))
 
-;(define (scalar-multiply v s) (make-vector 0 0 0)) ;stub
+;(define (scalar-multiply v s) ZERO-VECTOR) ;stub
 
 (@template-origin Vector)
 
@@ -342,7 +405,7 @@
 (check-expect (scalar-divide (make-vector 1.2 -4.5 7.8) 3)
               (make-vector 0.4 -1.5 2.6))
 
-;(define (scalar-divide v s) (make-vector 0 0 0)) ;stub
+;(define (scalar-divide v s) ZERO-VECTOR) ;stub
 
 (@template-origin Vector)
 
@@ -369,7 +432,7 @@
                              (make-vector 2 0 0))
               (make-vector 0 0 -4))
 
-;(define (cross-product v0 v1) (make-vector 0 0 0)) ;stub
+;(define (cross-product v0 v1) ZERO-VECTOR) ;stub
 
 (@template-origin Vector)
 
@@ -459,7 +522,7 @@
                               (make-point 1.3 5.7 -9.1))
               (make-vector 0.1 9.1 -14.7))
 
-;(define (points->vector p0 p1) (make-vector 0 0 0)) ;stub
+;(define (points->vector p0 p1) ZERO-VECTOR) ;stub
 
 (@template-origin Point)
 
@@ -493,7 +556,7 @@
                                 "black"))
               (make-vector 0 0 -4))
 
-;(define (normal t) (make-vector 0 0 0)) ;stub
+;(define (normal t) ZERO-VECTOR) ;stub
 
 (@template-origin fn-composition)
 
