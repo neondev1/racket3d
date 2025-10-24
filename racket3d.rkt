@@ -83,33 +83,33 @@
 
 
 (@htdd Triangle)
-(define-struct tri (v0 v1 v2 colour))
-;; Triangle is (make-tri Point Point Point Colour)
+(define-struct r3d-triangle (v0 v1 v2 colour))
+;; Triangle is (make-r3d-triangle Point Point Point Colour)
 ;; interp. the three vertices and fill colour of a triangle
-;; CONSTRAINT: No two vertices should be equal
-(define TRIANGLE1 (make-tri (make-point 0 1 1)
-                            (make-point 1 0 1)
-                            (make-point 0 0 1)
-                            "black"))          ;triangles for a
-(define TRIANGLE2 (make-tri (make-point 0 1 1) ;rectangular mesh
-                            (make-point 1 1 1)
-                            (make-point 1 0 1)
-                            "black"))
-(define TRIANGLE3 (make-tri (make-point -1 1 1)
-                            (make-point 1 1 1)
-                            (make-point 0 0 1)
-                            "red"))
+;; CONSTRAINT: Triangle must be non-degenerate
+(define TRIANGLE1 (make-r3d-triangle (make-point 0 1 1)
+                                     (make-point 1 0 1)
+                                     (make-point 0 0 1)
+                                     "black"))          ;triangles for a
+(define TRIANGLE2 (make-r3d-triangle (make-point 0 1 1) ;rectangular mesh
+                                     (make-point 1 1 1)
+                                     (make-point 1 0 1)
+                                     "black"))
+(define TRIANGLE3 (make-r3d-triangle (make-point -1 1 1)
+                                     (make-point 1 1 2)
+                                     (make-point 0 0 3)
+                                     "red"))
 
 (@dd-template-rules compound ;4 fields
-                    ref      ;(tri-v0 Triangle) is Point
-                    ref      ;(tri-v1 Triangle) is Point
-                    ref)     ;(tri-v2 Triangle) is Point
+                    ref      ;(r3d-triangle-v0 Triangle) is Point
+                    ref      ;(r3d-triangle-v1 Triangle) is Point
+                    ref)     ;(r3d-triangle-v2 Triangle) is Point
 
 (define (fn-for-triangle t)
-  (... (fn-for-point (tri-v0 t)) 
-       (fn-for-point (tri-v1 t))
-       (fn-for-point (tri-v2 t))
-       (tri-colour t)))          ;Colour
+  (... (fn-for-point (r3d-triangle-v0 t)) 
+       (fn-for-point (r3d-triangle-v1 t))
+       (fn-for-point (r3d-triangle-v2 t))
+       (r3d-triangle-colour t)))          ;Colour
 
 ;;
 ;; INTERNAL DEFINITIONS
@@ -181,24 +181,22 @@
 ;;  - (cons Triangle Mesh)
 ;; interp. a mesh composed of triangular faces
 (define MESH1 empty)
-(define MESH2 (cons (make-tri (make-point 2 0 0) ;Tetrahedron mesh
-                              (make-point -1 -1 (/ (sqrt 13) 2))
-                              (make-point -1 -1 (/ (sqrt 13) -2))
-                              "black")
-                    (cons (make-tri (make-point -1 2 0)
-                                    (make-point -1 -1 (/ (sqrt 13) 2))
-                                    (make-point -1 -1 (/ (sqrt 13) -2))
-                                    "black")
-                          (cons (make-tri (make-point 2 0 0)
-                                          (make-point -1 2 0)
-                                          (make-point -1 -1 (/ (sqrt 13) 2))
-                                          "black")
-                                (cons (make-tri (make-point 2 0 0)
-                                                (make-point -1 2 0)
-                                                (make-point -1 -1
-                                                            (/ (sqrt 13) -2))
-                                                "black")
-                                      empty)))))
+(define MESH2 (list (make-r3d-triangle (make-point 2 0 0) ;Tetrahedron example
+                                       (make-point -1 -1 (/ (sqrt 13) 2))
+                                       (make-point -1 -1 (/ (sqrt 13) -2))
+                                       "black")
+                    (make-r3d-triangle (make-point -1 2 0)
+                                       (make-point -1 -1 (/ (sqrt 13) 2))
+                                       (make-point -1 -1 (/ (sqrt 13) -2))
+                                       "black")
+                    (make-r3d-triangle (make-point 2 0 0)
+                                       (make-point -1 2 0)
+                                       (make-point -1 -1 (/ (sqrt 13) 2))
+                                       "black")
+                    (make-r3d-triangle (make-point 2 0 0)
+                                       (make-point -1 2 0)
+                                       (make-point -1 -1 (/ (sqrt 13) -2))
+                                       "black")))
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;empty
@@ -212,7 +210,6 @@
         [else
          (... (fn-for-triangle (first m))
               (fn-for-mesh (rest m)))]))
-
 
 ;;
 ;; PUBLIC DEFINITIONS
@@ -267,117 +264,155 @@
               (fn-for-loo (rest loo)))]))
 
 ;;
-;; VECTOR DATA DEFINITION
+;; VECTOR DATA DEFINITIONS
+;; All definitions here are namespaced with the r3d-
+;; prefix to prevent conflicts with the base language
 ;;
 
 (@htdd Vector)
-(define-struct vector (x y z))
-;; Vector is (make-vector Number Number Number)
+(define-struct r3d-vector (x y z))
+;; Vector is (make-r3d-vector Number Number Number)
 ;; interp. the x, y and z components of a 3D vector
-(define ZERO-VECTOR (make-vector 0 0 0)) ;zero vector
-(define VECTOR1 (make-vector 0 0 1))     ;unit vector normal to xy plane
-(define VECTOR2 (make-vector 1.3 3.5 5.7))
-(define VECTOR3 (make-vector -1.3 -3.5 -5.7))
+(define ZERO-VECTOR (make-r3d-vector 0 0 0)) ;zero vector
+(define VECTOR1 (make-r3d-vector 0 0 1))     ;unit vector normal to xy plane
+(define VECTOR2 (make-r3d-vector 1.3 3.5 5.7))
+(define VECTOR3 (make-r3d-vector -1.3 -3.5 -5.7))
 
 (@dd-template-rules compound) ;3 fields
 
 (define (fn-for-vector v)
-  (... (vector-x v)   ;Number
-       (vector-y v)   ;Number
-       (vector-z v))) ;Number
+  (... (r3d-vector-x v)   ;Number
+       (r3d-vector-y v)   ;Number
+       (r3d-vector-z v))) ;Number
 
 
 (@htdd Plane)
-(define-struct plane (position v0 v1))
-;; Plane is (make-plane Point Vector Vector)
-;; interp. a plane in vector equation form
-;; CONSTRAINT: both vectors must be nonzero and non-parallel
-(define PLANE1 (make-plane ORIGIN
-                           (make-vector 1 0 0)
-                           (make-vector 0 1 0)))       ;xy plane example
-(define PLANE2 (make-plane (make-point 1 2 3)
-                           (make-vector 2.4 -5.7 -8.9) ;the vectors do not
-                           (make-vector 3 -6 10)))     ;need to be orthogonal
+(define-struct r3d-plane (position v0 v1))
+;; Plane is (make-r3d-plane Vector Vector Vector)
+;; interp. a plane in vector parametric form
+;; CONSTRAINT: both direction vectors must be nonzero and nonparallel
+(define PLANE1 (make-r3d-plane ZERO-VECTOR ;origin position vector
+                               (make-r3d-vector 1 0 0)
+                               (make-r3d-vector 0 1 0))) ;xy plane example
+(define PLANE2 (make-r3d-plane (make-r3d-vector 1 2 3)
+                               (make-r3d-vector 2.4 -5.7 -8.9)   ;vectors do not
+                               (make-r3d-vector 3 -6 1))) ;need to be orthogonal
 
 (@dd-template-rules compound ;3 fields
-                    ref      ;Point
+                    ref      ;Vector
                     ref      ;Vector
                     ref)     ;Vector
 
 (define (fn-for-plane p)
-  (... (fn-for-point (plane-position p)) 
-       (fn-for-vector (plane-v0 p))
-       (fn-for-vector (plane-v1 p))))
+  (... (fn-for-point (r3d-plane-position p)) 
+       (fn-for-vector (r3d-plane-v0 p))
+       (fn-for-vector (r3d-plane-v1 p))))
+
+
+(@htdd Cartesian)
+(define-struct r3d-cartesian (a b c d))
+;; Cartesian is (make-r3d-cartesian Number Number Number Number)
+;; interp. a plane in Cartesian form, i.e. in the form ax+by+cz=d
+(define CARTESIAN1 (make-r3d-cartesian 0 0 1 0))           ;z=0, xy plane
+(define CARTESIAN2 (make-r3d-cartesian 1 2 -10 5))
+(define CARTESIAN3 (make-r3d-cartesian -0.5 1.2 5.6 -2.4)) ;negative a and
+;                                                          ;d are allowed
+
+(@dd-template-rules compound) ;4 fields
+
+(define (fn-for-cartesian c)
+  (... (r3d-cartesian-a c)   ;Number
+       (r3d-cartesian-b c)   ;Number
+       (r3d-cartesian-c c)   ;Number
+       (r3d-cartesian-d c))) ;Number
+
+
+(@htdd Line)
+(define-struct r3d-line (position direction))
+;; Line is (make-r3d-line Vector Vector)
+;; interp. a line in vector parametric form
+;; CONSTRAINT: direction vector must be nonzero
+(define LINE1 (make-r3d-line ZERO-VECTOR ;x-axis example
+                             (make-r3d-vector 1 0 0)))
+(define LINE2 (make-r3d-line VECTOR2 VECTOR3))
+
+(@dd-template-rules compound ;2 fields
+                    ref      ;Vector
+                    ref)     ;Vector
+
+(define (fn-for-line l)
+  (... (fn-for-vector (r3d-line-position l))
+       (fn-for-vector (r3d-line-direction l))))
 
 ;;
 ;; VECTOR ARITHMETIC FUNCTIONS
 ;;
 
-(@htdf sum)
+(@htdf add)
 (@signature Vector Vector -> Vector)
 ;; produce sum of two vectors
-(check-expect (sum (make-vector 0 0 0) (make-vector 0 0 0))
-              (make-vector 0 0 0))
-(check-expect (sum (make-vector 2 3 4) (make-vector 0 0 0))
-              (make-vector 2 3 4))
-(check-expect (sum (make-vector 1 2 3) (make-vector 1.2 2.3 -3.4))
-              (make-vector 2.2 4.3 -0.4))
+(check-expect (add (make-r3d-vector 0 0 0) (make-r3d-vector 0 0 0))
+              (make-r3d-vector 0 0 0))
+(check-expect (add (make-r3d-vector 2 3 4) (make-r3d-vector 0 0 0))
+              (make-r3d-vector 2 3 4))
+(check-expect (add (make-r3d-vector 1 2 3) (make-r3d-vector 1.2 2.3 -3.4))
+              (make-r3d-vector 2.2 4.3 -0.4))
 
-;(define (sum v0 v1) ZERO-VECTOR) ;stub
+;(define (add v0 v1) ZERO-VECTOR) ;stub
 
 (@template-origin Vector)
 
 (@template
- (define (sum v0 v1)
-   (... (vector-x v0)
-        (vector-y v0)
-        (vector-z v0)
-        (vector-x v1)
-        (vector-y v1)
-        (vector-z v1))))
+ (define (add v0 v1)
+   (... (r3d-vector-x v0)
+        (r3d-vector-y v0)
+        (r3d-vector-z v0)
+        (r3d-vector-x v1)
+        (r3d-vector-y v1)
+        (r3d-vector-z v1))))
 
-(define (sum v0 v1)
-  (make-vector (+ (vector-x v0) (vector-x v1))
-               (+ (vector-y v0) (vector-y v1))
-               (+ (vector-z v0) (vector-z v1))))
+(define (add v0 v1)
+  (make-r3d-vector (+ (r3d-vector-x v0) (r3d-vector-x v1))
+                   (+ (r3d-vector-y v0) (r3d-vector-y v1))
+                   (+ (r3d-vector-z v0) (r3d-vector-z v1))))
 
 
-(@htdf difference)
+(@htdf sub)
 (@signature Vector Vector -> Vector)
 ;; produce difference of two vectors
-(check-expect (difference (make-vector 0 0 0) (make-vector 0 0 0))
-              (make-vector 0 0 0))
-(check-expect (difference (make-vector 0 0 0) (make-vector 2 -4 6))
-              (make-vector -2 4 -6))
-(check-expect (difference (make-vector 3 4 5) (make-vector 1.2 2.3 3.4))
-              (make-vector 1.8 1.7 1.6))
+(check-expect (sub (make-r3d-vector 0 0 0) (make-r3d-vector 0 0 0))
+              (make-r3d-vector 0 0 0))
+(check-expect (sub (make-r3d-vector 0 0 0) (make-r3d-vector 2 -4 6))
+              (make-r3d-vector -2 4 -6))
+(check-expect (sub (make-r3d-vector 3 4 5) (make-r3d-vector 1.2 2.3 3.4))
+              (make-r3d-vector 1.8 1.7 1.6))
 
-;(define (difference v0 v1) ZERO-VECTOR) ;stub
+;(define (sub v0 v1) ZERO-VECTOR) ;stub
 
 (@template-origin Vector)
 
 (@template
- (define (difference v0 v1)
-   (... (vector-x v0)
-        (vector-y v0)
-        (vector-z v0)
-        (vector-x v1)
-        (vector-y v1)
-        (vector-z v1))))
+ (define (sub v0 v1)
+   (... (r3d-vector-x v0)
+        (r3d-vector-y v0)
+        (r3d-vector-z v0)
+        (r3d-vector-x v1)
+        (r3d-vector-y v1)
+        (r3d-vector-z v1))))
 
-(define (difference v0 v1)
-  (make-vector (- (vector-x v0) (vector-x v1))
-               (- (vector-y v0) (vector-y v1))
-               (- (vector-z v0) (vector-z v1))))
+(define (sub v0 v1)
+  (make-r3d-vector (- (r3d-vector-x v0) (r3d-vector-x v1))
+                   (- (r3d-vector-y v0) (r3d-vector-y v1))
+                   (- (r3d-vector-z v0) (r3d-vector-z v1))))
 
 
 (@htdf scalar-multiply)
 (@signature Vector Number -> Vector)
 ;; produce vector multiplied by a scalar
-(check-expect (scalar-multiply (make-vector 0 0 0) 2) (make-vector 0 0 0))
-(check-expect (scalar-multiply (make-vector 1 2 3) 0) (make-vector 0 0 0))
-(check-expect (scalar-multiply (make-vector 1.2 3.4 -5.6) -3)
-              (make-vector -3.6 -10.2 16.8))
+(check-expect (scalar-multiply ZERO-VECTOR 2) ZERO-VECTOR)
+(check-expect (scalar-multiply (make-r3d-vector 1 2 3) 0) ZERO-VECTOR)
+(check-expect (scalar-multiply (make-r3d-vector 1.2 3.4 -5.6) -3)
+              (make-r3d-vector -3.6 -10.2 16.8))
 
 ;(define (scalar-multiply v s) ZERO-VECTOR) ;stub
 
@@ -386,24 +421,23 @@
 (@template
  (define (scalar-multiply v s)
    (... s
-        (vector-x v)
-        (vector-y v)
-        (vector-z v))))
+        (r3d-vector-x v)
+        (r3d-vector-y v)
+        (r3d-vector-z v))))
 
 (define (scalar-multiply v s)
-  (make-vector (* (vector-x v) s)
-               (* (vector-y v) s)
-               (* (vector-z v) s)))
+  (make-r3d-vector (* (r3d-vector-x v) s)
+                   (* (r3d-vector-y v) s)
+                   (* (r3d-vector-z v) s)))
 
 
 (@htdf scalar-divide)
 (@signature Vector Number -> Vector)
 ;; produce vector divided by a scalar
 ;; CONSTRAINT: scalar must be nonzero
-(check-expect (scalar-divide (make-vector 0 0 0) 2)
-              (make-vector 0 0 0))
-(check-expect (scalar-divide (make-vector 1.2 -4.5 7.8) 3)
-              (make-vector 0.4 -1.5 2.6))
+(check-expect (scalar-divide ZERO-VECTOR 2) ZERO-VECTOR)
+(check-expect (scalar-divide (make-r3d-vector 1.2 -4.5 7.8) 3)
+              (make-r3d-vector 0.4 -1.5 2.6))
 
 ;(define (scalar-divide v s) ZERO-VECTOR) ;stub
 
@@ -412,101 +446,79 @@
 (@template
  (define (scalar-divide v s)
    (... s
-        (vector-x v)
-        (vector-y v)
-        (vector-z v))))
+        (r3d-vector-x v)
+        (r3d-vector-y v)
+        (r3d-vector-z v))))
 
 (define (scalar-divide v s)
-  (make-vector (/ (vector-x v) s)
-               (/ (vector-y v) s)
-               (/ (vector-z v) s)))
+  (make-r3d-vector (/ (r3d-vector-x v) s)
+                   (/ (r3d-vector-y v) s)
+                   (/ (r3d-vector-z v) s)))
 
 
-(@htdf cross-product)
-(@signature Vector Vector -> Vector)
-;; produce cross product of given vectors
-(check-expect (cross-product (make-vector 2 0 0)
-                             (make-vector 0 2 0))
-              (make-vector 0 0 4))
-(check-expect (cross-product (make-vector 0 2 0)
-                             (make-vector 2 0 0))
-              (make-vector 0 0 -4))
-
-;(define (cross-product v0 v1) ZERO-VECTOR) ;stub
-
-(@template-origin Vector)
-
-(@template
- (define (cross-product v0 v1)
-   (... (vector-x v0)
-        (vector-y v0)
-        (vector-z v0)
-        (vector-x v1)
-        (vector-y v1)
-        (vector-z v1))))
-
-(define (cross-product v0 v1)
-  (make-vector (- (* (vector-y v0) (vector-z v1))
-                  (* (vector-y v1) (vector-z v0)))
-               (- (* (vector-z v0) (vector-x v1))
-                  (* (vector-z v1) (vector-x v0)))
-               (- (* (vector-x v0) (vector-y v1))
-                  (* (vector-x v1) (vector-y v0)))))
-
-
-(@htdf dot-product)
-(@signature Vector Vector -> Number)
-;; produce dot product of given vectors
-(check-expect (dot-product (make-vector 2 0 0)
-                           (make-vector 0 2 2))
-              0)
-(check-expect (dot-product (make-vector 0 2 0)
-                           (make-vector 0 3 0))
-              6)
-(check-expect (dot-product (make-vector 1.2 3.4 5.6)
-                           (make-vector 9.8 -7.6 5.4))
-              16.16)
-
-;(define (dot-product v0 v1) 0) ;stub
-
-(@template-origin Vector)
-
-(@template
- (define (dot-product v0 v1)
-   (... (vector-x v0)
-        (vector-y v0)
-        (vector-z v0)
-        (vector-x v1)
-        (vector-y v1)
-        (vector-z v1))))
-
-(define (dot-product v0 v1)
-  (+ (* (vector-x v0) (vector-x v1))
-     (* (vector-y v0) (vector-y v1))
-     (* (vector-z v0) (vector-z v1))))
-
-
-(@htdf mag)
+(@htdf vector-magnitude)
 (@signature Vector -> Number)
 ;; produce magnitude of given vector
-(check-expect (mag (make-vector 0 0 0)) 0)
-(check-within (mag (make-vector 1 1 1)) (sqrt 3) APPROX)
-(check-expect (mag (make-vector -2 3 -6)) 7)
+(check-expect (vector-magnitude ZERO-VECTOR) 0)
+(check-within (vector-magnitude (make-r3d-vector 1 1 1)) (sqrt 3) APPROX)
+(check-expect (vector-magnitude (make-r3d-vector -2 3 -6)) 7)
 
-;(define (mag v) 0) ;stub
+;(define (vector-magnitude v) 0) ;stub
 
 (@template-origin Vector)
 
 (@template
- (define (mag v)
-   (... (vector-x v)
-        (vector-y v)
-        (vector-z v))))
+ (define (vector-magnitude v)
+   (... (r3d-vector-x v)
+        (r3d-vector-y v)
+        (r3d-vector-z v))))
 
-(define (mag v)
-  (sqrt (+ (sqr (vector-x v))
-           (sqr (vector-y v))
-           (sqr (vector-z v)))))
+(define (vector-magnitude v)
+  (sqrt (+ (sqr (r3d-vector-x v))
+           (sqr (r3d-vector-y v))
+           (sqr (r3d-vector-z v)))))
+
+
+(@htdf vector->point)
+(@signature Vector -> Point)
+;; produce point given position vector
+(check-expect (vector->point ZERO-VECTOR) ORIGIN)
+(check-expect (vector->point (make-r3d-vector 14.7 25.8 36.9))
+              (make-point 14.7 25.8 36.9))
+
+(@template-origin Vector)
+
+(@template
+ (define (vector->point p)
+   (... (r3d-vector-x p)
+        (r3d-vector-y p)
+        (r3d-vector-z p))))
+
+(define (vector->point p)
+  (make-point (r3d-vector-x p)
+              (r3d-vector-y p)
+              (r3d-vector-z p)))
+
+
+(@htdf point->vector)
+(@signature Point -> Vector)
+;; produce position vector of given point
+(check-expect (point->vector ORIGIN) ZERO-VECTOR)
+(check-expect (point->vector (make-point 14.7 25.8 36.9))
+              (make-r3d-vector 14.7 25.8 36.9))
+
+(@template-origin Point)
+
+(@template
+ (define (point->vector p)
+   (... (point-x p)
+        (point-y p)
+        (point-z p))))
+
+(define (point->vector p)
+  (make-r3d-vector (point-x p)
+                   (point-y p)
+                   (point-z p)))
 
 
 (@htdf points->vector)
@@ -514,13 +526,13 @@
 ;; produce vector from first to second point
 (check-expect (points->vector (make-point 0 0 0)
                               (make-point 0 0 0))
-              (make-vector 0 0 0))
+              (make-r3d-vector 0 0 0))
 (check-expect (points->vector (make-point 0 0 0)
                               (make-point 1 -2 3))
-              (make-vector 1 -2 3))
+              (make-r3d-vector 1 -2 3))
 (check-expect (points->vector (make-point 1.2 -3.4 5.6)
                               (make-point 1.3 5.7 -9.1))
-              (make-vector 0.1 9.1 -14.7))
+              (make-r3d-vector 0.1 9.1 -14.7))
 
 ;(define (points->vector p0 p1) ZERO-VECTOR) ;stub
 
@@ -536,52 +548,117 @@
         (point-z p1))))
 
 (define (points->vector p0 p1)
-  (make-vector (- (point-x p1) (point-x p0))
-               (- (point-y p1) (point-y p0))
-               (- (point-z p1) (point-z p0))))
+  (make-r3d-vector (- (point-x p1) (point-x p0))
+                   (- (point-y p1) (point-y p0))
+                   (- (point-z p1) (point-z p0))))
+
+
+(@htdf cross-product)
+(@signature Vector Vector -> Vector)
+;; produce cross product of given vectors
+(check-expect (cross-product (make-r3d-vector 2 0 0)
+                             (make-r3d-vector 0 2 0))
+              (make-r3d-vector 0 0 4))
+(check-expect (cross-product (make-r3d-vector 0 2 0)
+                             (make-r3d-vector 2 0 0))
+              (make-r3d-vector 0 0 -4))
+
+;(define (cross-product v0 v1) ZERO-VECTOR) ;stub
+
+(@template-origin Vector)
+
+(@template
+ (define (cross-product v0 v1)
+   (... (r3d-vector-x v0)
+        (r3d-vector-y v0)
+        (r3d-vector-z v0)
+        (r3d-vector-x v1)
+        (r3d-vector-y v1)
+        (r3d-vector-z v1))))
+
+(define (cross-product v0 v1)
+  (make-r3d-vector (- (* (r3d-vector-y v0) (r3d-vector-z v1))
+                      (* (r3d-vector-y v1) (r3d-vector-z v0)))
+                   (- (* (r3d-vector-z v0) (r3d-vector-x v1))
+                      (* (r3d-vector-z v1) (r3d-vector-x v0)))
+                   (- (* (r3d-vector-x v0) (r3d-vector-y v1))
+                      (* (r3d-vector-x v1) (r3d-vector-y v0)))))
+
+
+(@htdf dot-product)
+(@signature Vector Vector -> Number)
+;; produce dot product of given vectors
+(check-expect (dot-product (make-r3d-vector 2 0 0)
+                           (make-r3d-vector 0 2 2))
+              0)
+(check-expect (dot-product (make-r3d-vector 0 2 0)
+                           (make-r3d-vector 0 3 0))
+              6)
+(check-expect (dot-product (make-r3d-vector 1.2 3.4 5.6)
+                           (make-r3d-vector 9.8 -7.6 5.4))
+              16.16)
+
+;(define (dot-product v0 v1) 0) ;stub
+
+(@template-origin Vector)
+
+(@template
+ (define (dot-product v0 v1)
+   (... (r3d-vector-x v0)
+        (r3d-vector-y v0)
+        (r3d-vector-z v0)
+        (r3d-vector-x v1)
+        (r3d-vector-y v1)
+        (r3d-vector-z v1))))
+
+(define (dot-product v0 v1)
+  (+ (* (r3d-vector-x v0) (r3d-vector-x v1))
+     (* (r3d-vector-y v0) (r3d-vector-y v1))
+     (* (r3d-vector-z v0) (r3d-vector-z v1))))
 
 
 (@htdf normal)
 (@signature Triangle -> Vector)
 ;; produce a vector normal to given triangle with unspecified magnitude
-;; CONSTRAINT: given triangle must be non-degenerate
-(check-expect (normal (make-tri (make-point 0 0 0)
-                                (make-point 2 0 0)
-                                (make-point 0 2 0)
-                                "black"))
-              (make-vector 0 0 4))
-(check-expect (normal (make-tri (make-point 0 0 0)
-                                (make-point 0 2 0)
-                                (make-point 2 0 0)
-                                "black"))
-              (make-vector 0 0 -4))
+(check-expect (normal (make-r3d-triangle (make-point 0 0 0)
+                                         (make-point 2 0 0)
+                                         (make-point 0 2 0)
+                                         "black"))
+              (make-r3d-vector 0 0 4))
+(check-expect (normal (make-r3d-triangle (make-point 0 0 0)
+                                         (make-point 0 2 0)
+                                         (make-point 2 0 0)
+                                         "black"))
+              (make-r3d-vector 0 0 -4))
 
 ;(define (normal t) ZERO-VECTOR) ;stub
 
-(@template-origin fn-composition)
+(@template-origin Triangle)
 
 (@template
  (define (normal t)
-   (cross-product (points->vector (tri-v1 t) (tri-v0 t))
-                  (points->vector (tri-v2 t) (tri-v1 t)))))
+   (... (r3d-triangle-v0 t)
+        (r3d-triangle-v1 t)
+        (r3d-triangle-v2 t)
+        (r3d-triangle-colour t))))
 
 (define (normal t)
-  (cross-product (points->vector (tri-v1 t) (tri-v0 t))
-                 (points->vector (tri-v2 t) (tri-v1 t))))
+  (cross-product (points->vector (r3d-triangle-v0 t) (r3d-triangle-v1 t))
+                 (points->vector (r3d-triangle-v0 t) (r3d-triangle-v2 t))))
 
 
 (@htdf vector-angle)
 (@signature Vector Vector -> Number)
 ;; produce angle between two given vectors in radians
 ;; CONSTRAINT: both vectors must be nonzero
-(check-expect (vector-angle (make-vector 1 0 0)
-                            (make-vector 1 0 0))
+(check-expect (vector-angle (make-r3d-vector 1 0 0)
+                            (make-r3d-vector 1 0 0))
               0)
-(check-within (vector-angle (make-vector 1 0 0)
-                            (make-vector 0 2 3))
+(check-within (vector-angle (make-r3d-vector 1 0 0)
+                            (make-r3d-vector 0 2 3))
               (/ pi 2) APPROX)
-(check-within (vector-angle (make-vector 1 0 0)
-                            (make-vector -1 0 0))
+(check-within (vector-angle (make-r3d-vector 1 0 0)
+                            (make-r3d-vector -1 0 0))
               pi APPROX)
 
 ;(define (vector-angle v0 v1) 0) ;stub
@@ -591,11 +668,114 @@
 (@template
  (define (vector-angle v0 v1)
    (acos (/ (dot-product v0 v1)
-            (* (mag v0) (mag v1))))))
+            (* (vector-magnitude v0) (vector-magnitude v1))))))
 
 (define (vector-angle v0 v1)
   (acos (/ (dot-product v0 v1)
-           (* (mag v0) (mag v1)))))
+           (* (vector-magnitude v0) (vector-magnitude v1)))))
+
+
+(@htdf triangle->plane)
+(@signature Triangle -> Plane)
+;; produce vector parametric plane containing given triangle
+(check-expect (triangle->plane (make-r3d-triangle (make-point 0 1 1)
+                                                  (make-point 1 0 1)
+                                                  (make-point 0 0 1)
+                                                  "black"))
+              (make-r3d-plane (make-r3d-vector 0 1 1)
+                              (make-r3d-vector 1 -1 0)
+                              (make-r3d-vector 0 -1 0)))
+(check-expect (triangle->plane (make-r3d-triangle (make-point 1.7 -5.3 1.9)
+                                                  (make-point 3.4 8.1 -0.7)
+                                                  (make-point -2.5 2.6 5.3)
+                                                  "black"))
+              (make-r3d-plane (make-r3d-vector 1.7 -5.3 1.9)
+                              (make-r3d-vector 1.7 13.4 -2.6)
+                              (make-r3d-vector -4.2 7.9 3.4)))
+
+(@template-origin Triangle)
+
+(@template
+ (define (triangle->plane t)
+   (... (r3d-triangle-v0 t)
+        (r3d-triangle-v1 t)
+        (r3d-triangle-v2 t)
+        (r3d-triangle-colour t))))
+
+(define (triangle->plane t)
+  (make-r3d-plane (point->vector (r3d-triangle-v0 t))
+                  (points->vector (r3d-triangle-v0 t) (r3d-triangle-v1 t))
+                  (points->vector (r3d-triangle-v0 t) (r3d-triangle-v2 t))))
+
+
+(@htdf normal->cartesian)
+(@signature Vector Vector -> Cartesian)
+;; produce Cartesian form of plane given normal and a position vector on plane
+;!!! examples
+
+(@template-origin Vector)
+
+(@template
+ (define (normal->cartesian n p)
+   (... (r3d-vector-x n)
+        (r3d-vector-y n)
+        (r3d-vector-z n)
+        (r3d-vector-x p)
+        (r3d-vector-y p)
+        (r3d-vector-z p))))
+
+(define (normal->cartesian n p)
+  (make-r3d-cartesian (r3d-vector-x n)
+                      (r3d-vector-y n)
+                      (r3d-vector-z n)
+                      (dot-product n p)))
+
+
+(@htdf triangle->cartesian)
+(@signature Triangle -> Cartesian)
+;; produce Cartesian form of plane containing triangle
+(check-expect (triangle->cartesian (make-r3d-triangle (make-point 0 0 0)
+                                                      (make-point 2 0 0)
+                                                      (make-point 0 2 0)
+                                                      "black"))
+              (make-r3d-cartesian 0 0 4 0))
+;!!! more examples
+
+(@template-origin fn-composition)
+
+(@template
+ (define (triangle->cartesian t)
+   (normal->cartesian (normal t) (point->vector (r3d-triangle-v0 t)))))
+
+(define (triangle->cartesian t)
+   (normal->cartesian (normal t) (point->vector (r3d-triangle-v0 t))))
+
+#|
+TODO: Subdividing overlapping mesh faces
+!!!
+
+BASIC PROCEDURE
+
+For each mesh face added to buffer, perform a comparison with each existing
+element as follows:
+1. Compute distance between centroids. If distance is too great (rigorous
+   definition of "too great" TBD), end.
+2. Compute line of intersection between planes containing both triangles.
+3. Check if computed line of intersection intersects both triangles.
+   3a. Performing 2D checks on two sides of each triangle is sufficient.
+   3b. If either of the triangles have both intersection points very close
+       (rigorous definition TBD) to a vertex, end.
+4. If previous check returned false, end.
+5. Subdivide both triangles along line of intersection.
+   5a. For each subdivision:
+   5b. Determine which two edges are intersected by the line.
+   5c. Create a mesh face from the triangle created by cutting along the line.
+   5d. Divide remaining quadrilateral into two triangular mesh faces.
+6. The existing mesh face that has been subdivided is reinserted into the list
+   without checks. The new mesh face is inserted normally (with this procedure).
+
+Note: "End" refers to inserting the mesh face directly without any subdivision.
+|#
 
 ;;
 ;; PROJECTION DATA DEFININTIONS
@@ -645,33 +825,6 @@
 ;; PROJECTION FUNCTIONS
 ;;
 
-#|
-TODO: Subdividing overlapping mesh faces
-!!!
-
-BASIC PROCEDURE
-
-For each mesh face added to buffer, perform a comparison with each existing
-element as follows:
-1. Compute distance between centroids. If distance is too great (rigorous
-   definition of "too great" TBD), end.
-2. Compute line of intersection between planes containing both triangles.
-3. Check if computed line of intersection intersects both triangles.
-   3a. Performing 2D checks on two sides of each triangle is sufficient.
-   3b. If either of the triangles have both intersection points very close
-       (rigorous definition TBD) to a vertex, end.
-4. If previous check returned false, end.
-5. Subdivide both triangles along line of intersection.
-   5a. For each subdivision:
-   5b. Determine which two edges are intersected by the line.
-   5c. Create a mesh face from the triangle created by cutting along the line.
-   5d. Divide remaining quadrilateral into two triangular mesh faces.
-6. The existing mesh face that has been subdivided is reinserted into the list
-   without checks. The new mesh face is inserted normally (with this procedure).
-
-Note: "End" refers to inserting the mesh face directly without any subdivision.
-|#
-
 ;;
 ;; WORLD
 ;;
@@ -713,7 +866,7 @@ Note: "End" refers to inserting the mesh face directly without any subdivision.
        (fn-for-loo (camera-objects cam))
        (fn-for-point (camera-position cam))
        (fn-for-point (camera-light cam))
-       (camera-time cam)))                       ;Natural
+       (camera-time cam)))                  ;Natural
 
 
 (@htdf main)
