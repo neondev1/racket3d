@@ -42,10 +42,11 @@
 (define COLOUR2 "red")
 (define COLOUR3 (make-color 255 0 0))
 
-(@dd-template-rules atomic-non-distinct)
+(@dd-template-rules atomic-non-distinct) ;treat as simple atomic data
+                                         ;like with Color
 
-(define (fn-for-colour c)
-  (... c))
+(define (fn-for-colour c) ;don't need to bother using ref rule
+  (... c)) 
 
 
 (@htdd Point)
