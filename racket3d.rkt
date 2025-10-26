@@ -29,7 +29,7 @@
 (define APPROX (expt 10 -12))
 
 ;;
-;; BASIC DATA DEFINITIONS
+;; BASIC DEFINITIONS
 ;;
 
 (@htdd Colour)
@@ -43,10 +43,28 @@
 (define COLOUR3 (make-color 255 0 0))
 
 (@dd-template-rules atomic-non-distinct) ;treat as simple atomic data
-                                         ;like with Color
+;                                        ;like with Color
 
 (define (fn-for-colour c) ;don't need to bother using ref rule
-  (... c)) 
+  (... c))
+
+
+(@htdf make-colour)
+(@signature Natural Natural Natural -> Colour)
+;; produce colour value with RGB value (r, g, b), used in place of make-color
+(check-expect (make-colour 0 0 0) (make-color 0 0 0))
+(check-expect (make-colour 76 84 74) (make-color 76 84 74))
+
+;(define (make-colour r g b) "black") ;stub
+
+(@template-origin Natural)
+
+(@template
+ (define (make-colour r g b)
+   (... r g b)))
+
+(define (make-colour r g b)
+  (make-color r g b))
 
 
 (@htdd Point)
@@ -113,7 +131,7 @@
        (r3d-triangle-colour t)))          ;Colour
 
 ;;
-;; INTERNAL DEFINITIONS
+;; OBJECT DATA DEFINITIONS
 ;;
 
 (@htdd Cuboid)
@@ -212,9 +230,6 @@
          (... (fn-for-triangle (first m))
               (fn-for-mesh (rest m)))]))
 
-;;
-;; PUBLIC DEFINITIONS
-;;
 
 (@htdd Object)
 ;; Object is one of:
@@ -288,44 +303,21 @@
 
 
 (@htdd Plane)
-(define-struct r3d-plane (position v0 v1))
-;; Plane is (make-r3d-plane Vector Vector Vector)
-;; interp. a plane in vector parametric form
-;; CONSTRAINT: both direction vectors must be nonzero and nonparallel
-(define PLANE1 (make-r3d-plane ZERO-VECTOR ;origin position vector
-                               (make-r3d-vector 1 0 0)
-                               (make-r3d-vector 0 1 0))) ;xy plane example
-(define PLANE2 (make-r3d-plane (make-r3d-vector 1 2 3)
-                               (make-r3d-vector 2.4 -5.7 -8.9)   ;vectors do not
-                               (make-r3d-vector 3 -6 1))) ;need to be orthogonal
-
-(@dd-template-rules compound ;3 fields
-                    ref      ;Vector
-                    ref      ;Vector
-                    ref)     ;Vector
-
-(define (fn-for-plane p)
-  (... (fn-for-point (r3d-plane-position p)) 
-       (fn-for-vector (r3d-plane-v0 p))
-       (fn-for-vector (r3d-plane-v1 p))))
-
-
-(@htdd Cartesian)
-(define-struct r3d-cartesian (a b c d))
-;; Cartesian is (make-r3d-cartesian Number Number Number Number)
+(define-struct r3d-plane (a b c d))
+;; Plane is (make-r3d-plane Number Number Number Number)
 ;; interp. a plane in Cartesian form, i.e. in the form ax+by+cz=d
-(define CARTESIAN1 (make-r3d-cartesian 0 0 1 0))           ;z=0, xy plane
-(define CARTESIAN2 (make-r3d-cartesian 1 2 -10 5))
-(define CARTESIAN3 (make-r3d-cartesian -0.5 1.2 5.6 -2.4)) ;negative a and
-;                                                          ;d are allowed
+(define PLANE0 (make-r3d-plane 0 0 1 0))           ;z=0, xy plane
+(define PLANE1 (make-r3d-plane 1 2 -10 5))
+(define PLANE2 (make-r3d-plane -0.5 1.2 5.6 -2.4)) ;negative a and
+;                                                  ;d are allowed
 
 (@dd-template-rules compound) ;4 fields
 
-(define (fn-for-cartesian c)
-  (... (r3d-cartesian-a c)   ;Number
-       (r3d-cartesian-b c)   ;Number
-       (r3d-cartesian-c c)   ;Number
-       (r3d-cartesian-d c))) ;Number
+(define (fn-for-plane c)
+  (... (r3d-plane-a c)   ;Number
+       (r3d-plane-b c)   ;Number
+       (r3d-plane-c c)   ;Number
+       (r3d-plane-d c))) ;Number
 
 
 (@htdd Line)
@@ -676,48 +668,15 @@
            (* (vector-magnitude v0) (vector-magnitude v1)))))
 
 
-(@htdf triangle->plane)
-(@signature Triangle -> Plane)
-;; produce vector parametric plane containing given triangle
-(check-expect (triangle->plane (make-r3d-triangle (make-point 0 1 1)
-                                                  (make-point 1 0 1)
-                                                  (make-point 0 0 1)
-                                                  "black"))
-              (make-r3d-plane (make-r3d-vector 0 1 1)
-                              (make-r3d-vector 1 -1 0)
-                              (make-r3d-vector 0 -1 0)))
-(check-expect (triangle->plane (make-r3d-triangle (make-point 1.7 -5.3 1.9)
-                                                  (make-point 3.4 8.1 -0.7)
-                                                  (make-point -2.5 2.6 5.3)
-                                                  "black"))
-              (make-r3d-plane (make-r3d-vector 1.7 -5.3 1.9)
-                              (make-r3d-vector 1.7 13.4 -2.6)
-                              (make-r3d-vector -4.2 7.9 3.4)))
-
-(@template-origin Triangle)
-
-(@template
- (define (triangle->plane t)
-   (... (r3d-triangle-v0 t)
-        (r3d-triangle-v1 t)
-        (r3d-triangle-v2 t)
-        (r3d-triangle-colour t))))
-
-(define (triangle->plane t)
-  (make-r3d-plane (point->vector (r3d-triangle-v0 t))
-                  (points->vector (r3d-triangle-v0 t) (r3d-triangle-v1 t))
-                  (points->vector (r3d-triangle-v0 t) (r3d-triangle-v2 t))))
-
-
-(@htdf normal->cartesian)
-(@signature Vector Vector -> Cartesian)
+(@htdf normal->plane)
+(@signature Vector Vector -> Plane)
 ;; produce Cartesian form of plane given normal and a position vector on plane
 ;!!! examples
 
 (@template-origin Vector)
 
 (@template
- (define (normal->cartesian n p)
+ (define (normal->plane n p)
    (... (r3d-vector-x n)
         (r3d-vector-y n)
         (r3d-vector-z n)
@@ -725,31 +684,31 @@
         (r3d-vector-y p)
         (r3d-vector-z p))))
 
-(define (normal->cartesian n p)
-  (make-r3d-cartesian (r3d-vector-x n)
+(define (normal->plane n p)
+  (make-r3d-plane (r3d-vector-x n)
                       (r3d-vector-y n)
                       (r3d-vector-z n)
                       (dot-product n p)))
 
 
-(@htdf triangle->cartesian)
-(@signature Triangle -> Cartesian)
+(@htdf triangle->plane)
+(@signature Triangle -> Plane)
 ;; produce Cartesian form of plane containing triangle
-(check-expect (triangle->cartesian (make-r3d-triangle (make-point 0 0 0)
+(check-expect (triangle->plane (make-r3d-triangle (make-point 0 0 0)
                                                       (make-point 2 0 0)
                                                       (make-point 0 2 0)
                                                       "black"))
-              (make-r3d-cartesian 0 0 4 0))
+              (make-r3d-plane 0 0 4 0))
 ;!!! more examples
 
 (@template-origin fn-composition)
 
 (@template
- (define (triangle->cartesian t)
-   (normal->cartesian (normal t) (point->vector (r3d-triangle-v0 t)))))
+ (define (triangle->plane t)
+   (normal->plane (normal t) (point->vector (r3d-triangle-v0 t)))))
 
-(define (triangle->cartesian t)
-   (normal->cartesian (normal t) (point->vector (r3d-triangle-v0 t))))
+(define (triangle->plane t)
+   (normal->plane (normal t) (point->vector (r3d-triangle-v0 t))))
 
 #|
 TODO: Subdividing overlapping mesh faces
