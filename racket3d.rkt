@@ -325,9 +325,9 @@
 ;; Line is (make-r3d-line Vector Vector)
 ;; interp. a line in vector parametric form
 ;; CONSTRAINT: direction vector must be nonzero
-(define LINE1 (make-r3d-line ZERO-VECTOR ;x-axis example
-                             (make-r3d-vector 1 0 0)))
-(define LINE2 (make-r3d-line VECTOR2 VECTOR3))
+(define LINE-X (make-r3d-line ZERO-VECTOR ;x-axis
+                              (make-r3d-vector 1 0 0)))
+(define LINE1 (make-r3d-line VECTOR2 VECTOR3))
 
 (@dd-template-rules compound ;2 fields
                     ref      ;Vector
@@ -673,6 +673,8 @@
 ;; produce Cartesian form of plane given normal and a position vector on plane
 ;!!! examples
 
+;(define (normal->plane n p) PLANE-XY) ;stub
+
 (@template-origin Vector)
 
 (@template
@@ -701,6 +703,8 @@
               (make-r3d-plane 0 0 4 0))
 ;!!! more examples
 
+;(define (triangle->plane t) PLANE-XY) ;stub
+
 (@template-origin fn-composition)
 
 (@template
@@ -709,6 +713,27 @@
 
 (define (triangle->plane t)
    (normal->plane (normal t) (point->vector (r3d-triangle-v0 t))))
+
+
+(@htdf plane-intersect)
+(@signature Plane -> Line)
+;; produce parametric line of intersection between two planes
+;!!! examples
+
+(define (plane-intersect p0 p1) LINE-X) ;stub
+
+(@template-origin Plane)
+
+(@template
+ (define (plane-intersect p0 p1)
+   (... (r3d-plane-a p0)
+        (r3d-plane-b p0)
+        (r3d-plane-c p0)
+        (r3d-plane-d p0)
+        (r3d-plane-a p1)
+        (r3d-plane-b p1)
+        (r3d-plane-c p1)
+        (r3d-plane-d p1))))
 
 #|
 TODO: Subdividing overlapping mesh faces
