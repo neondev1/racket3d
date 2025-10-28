@@ -306,7 +306,7 @@
 (define-struct r3d-plane (a b c d))
 ;; Plane is (make-r3d-plane Number Number Number Number)
 ;; interp. a plane in Cartesian form, i.e. in the form ax+by+cz=d
-(define PLANE0 (make-r3d-plane 0 0 1 0))           ;z=0, xy plane
+(define PLANE-XY (make-r3d-plane 0 0 1 0))         ;z=0, xy plane
 (define PLANE1 (make-r3d-plane 1 2 -10 5))
 (define PLANE2 (make-r3d-plane -0.5 1.2 5.6 -2.4)) ;negative a and
 ;                                                  ;d are allowed
@@ -688,18 +688,18 @@
 
 (define (normal->plane n p)
   (make-r3d-plane (r3d-vector-x n)
-                      (r3d-vector-y n)
-                      (r3d-vector-z n)
-                      (dot-product n p)))
+                  (r3d-vector-y n)
+                  (r3d-vector-z n)
+                  (dot-product n p)))
 
 
 (@htdf triangle->plane)
 (@signature Triangle -> Plane)
 ;; produce Cartesian form of plane containing triangle
 (check-expect (triangle->plane (make-r3d-triangle (make-point 0 0 0)
-                                                      (make-point 2 0 0)
-                                                      (make-point 0 2 0)
-                                                      "black"))
+                                                  (make-point 2 0 0)
+                                                  (make-point 0 2 0)
+                                                  "black"))
               (make-r3d-plane 0 0 4 0))
 ;!!! more examples
 
@@ -712,7 +712,7 @@
    (normal->plane (normal t) (point->vector (r3d-triangle-v0 t)))))
 
 (define (triangle->plane t)
-   (normal->plane (normal t) (point->vector (r3d-triangle-v0 t))))
+  (normal->plane (normal t) (point->vector (r3d-triangle-v0 t))))
 
 
 (@htdf plane-intersect)
@@ -720,12 +720,27 @@
 ;; produce parametric line of intersection between two planes
 ;!!! examples
 
-(define (plane-intersect p0 p1) LINE-X) ;stub
+;(define (plane-intersect p0 p1) LINE-X) ;stub
+
+(@template-origin fn-composition)
+
+(define (plane-intersect p0 p1)
+  (plane-y-component p0 (plane-x-component p0 p1)))
+
+;; NOTE: The following functions exist to prevent recomputation.
+;;       local is not used as we decided to stick to strict BSL.
+
+(@htdf plane-x-component)
+(@signature Plane Plane -> Line)
+;; produce x component of incomplete line of intersection between two planes
+;!!! examples
+
+;(define (plane-x-component p0 p1) LINE-X) ;stub
 
 (@template-origin Plane)
 
 (@template
- (define (plane-intersect p0 p1)
+ (define (plane-x-component p0 p1)
    (... (r3d-plane-a p0)
         (r3d-plane-b p0)
         (r3d-plane-c p0)
@@ -734,6 +749,93 @@
         (r3d-plane-b p1)
         (r3d-plane-c p1)
         (r3d-plane-d p1))))
+
+(define (plane-x-component p0 p1)
+  (make-r3d-line (make-r3d-vector (/ (- (* (r3d-plane-d p0) (r3d-plane-b p1))
+                                        (* (r3d-plane-d p1) (r3d-plane-b p0)))
+                                     (- (* (r3d-plane-a p0) (r3d-plane-b p1))
+                                        (* (r3d-plane-a p1) (r3d-plane-b p0))))
+                                  0 0)
+                 (make-r3d-vector (/ (- (* (r3d-plane-b p0) (r3d-plane-c p1))
+                                        (* (r3d-plane-b p1) (r3d-plane-c p0)))
+                                     (- (* (r3d-plane-a p0) (r3d-plane-b p1))
+                                        (* (r3d-plane-a p1) (r3d-plane-b p0))))
+                                  0 1)))
+
+
+(@htdf plane-y-component)
+(@signature Plane Line -> Line)
+;; produce line of intersection from x component of line and one plane
+;!!! examples
+
+;(define (plane-y-component p x) LINE-X) ;stub
+
+(@template-origin Line)
+
+(@template
+ (define (plane-y-component p x)
+   (... p
+        (fn-for-vector (r3d-line-position x))
+        (fn-for-vector (r3d-line-direction x)))))
+
+(define (plane-y-component p x)
+  (make-r3d-line (plane-y-position p (r3d-line-position x))
+                 (plane-y-direction p (r3d-line-direction x))))
+
+
+(@htdf plane-y-position)
+(@signature Plane Vector -> Vector)
+;; produce position vector of y component of line of intersection
+;!!! examples
+
+;(define (plane-y-position p pos) ZERO-VECTOR) ;stub
+
+(@template-origin Plane Vector)
+
+(@template
+ (define (plane-y-position p pos)
+   (... (r3d-plane-a p)
+        (r3d-plane-b p)
+        (r3d-plane-c p)
+        (r3d-plane-d p)
+        (r3d-vector-x pos)
+        (r3d-vector-y pos)
+        (r3d-vector-z pos))))
+
+(define (plane-y-position p pos)
+  (make-r3d-vector (r3d-vector-x pos)
+                   (/ (- (r3d-plane-d p)
+                         (* (r3d-plane-a p) (r3d-vector-x pos)))
+                      (r3d-plane-b p))
+                   0))
+
+
+(@htdf plane-y-direction)
+(@signature Plane Vector -> Vector)
+;; produce direction vector of y component of line of intersection
+;!!! examples
+
+;(define (plane-y-direction p dir) dir) ;stub
+;                                       ;note that direction vector is nonzero
+
+(@template-origin Plane Vector)
+
+(@template
+ (define (plane-y-direction p dir)
+   (... (r3d-plane-a p)
+        (r3d-plane-b p)
+        (r3d-plane-c p)
+        (r3d-plane-d p)
+        (r3d-vector-x dir)
+        (r3d-vector-y dir)
+        (r3d-vector-z dir))))
+
+(define (plane-y-direction p dir)
+  (make-r3d-vector (r3d-vector-x dir)
+                   (/ (- (- (r3d-plane-c p))
+                         (* (r3d-plane-a p) (r3d-vector-x dir)))
+                      (r3d-plane-b p))
+                   1))
 
 #|
 TODO: Subdividing overlapping mesh faces
