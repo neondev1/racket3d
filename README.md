@@ -1,6 +1,6 @@
 # racket3d
-3D rendering engine written in BSL (Racket) with [SPD](https://github.com/GregorKiczales/spd) tags and style rules
-
+3D rendering engine written in BSL (Racket) with [SPD](https://github.com/GregorKiczales/spd) tags and style rules.
+Racket3D uses a [right-handed coordinate system](https://en.wikipedia.org/wiki/Right-handed_coordinate_system).
 ### Style Rule Deviations
 - Certain vector-related data definitions are namespaced with the `r3d-` prefix to prevent naming conflicts.
 - Data definition examples are named without abbreviation for single word type names in order to prevent overlap and improve readability. For example, data type `Object` has an example named `OBJECT1`. Multi-word type names follow standard style rules.
