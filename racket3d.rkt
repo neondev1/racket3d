@@ -286,29 +286,31 @@
 ;;
 
 (@htdd Vector)
-(define-struct r3d-vector (x y z))
-;; Vector is (make-r3d-vector Number Number Number)
+(define-struct vector (x y z))
+;; Vector is (make-vector Number Number Number)
 ;; interp. the x, y and z components of a 3D vector
-(define ZERO-VECTOR (make-r3d-vector 0 0 0)) ;zero vector
-(define VECTOR1 (make-r3d-vector 0 0 1))     ;unit vector normal to xy plane
-(define VECTOR2 (make-r3d-vector 1.3 3.5 5.7))
-(define VECTOR3 (make-r3d-vector -1.3 -3.5 -5.7))
+(define ZERO-VECTOR (make-vector 0 0 0)) ;zero vector
+(define VECTOR1 (make-vector 0 0 1))     ;unit vector normal to xy plane
+(define VECTOR2 (make-vector 1.3 3.5 5.7))
+(define VECTOR3 (make-vector -1.3 -3.5 -5.7))
 
 (@dd-template-rules compound) ;3 fields
 
 (define (fn-for-vector v)
-  (... (r3d-vector-x v)   ;Number
-       (r3d-vector-y v)   ;Number
-       (r3d-vector-z v))) ;Number
+  (... (vector-x v)   ;Number
+       (vector-y v)   ;Number
+       (vector-z v))) ;Number
 
 
 (@htdd Plane)
 (define-struct r3d-plane (a b c d))
 ;; Plane is (make-r3d-plane Number Number Number Number)
 ;; interp. a plane in Cartesian form, i.e. in the form ax+by+cz=d
+;; CONSTRAINT: at least one of a, b, c must be nonzero
 (define PLANE-XY (make-r3d-plane 0 0 1 0))         ;z=0, xy plane
-(define PLANE1 (make-r3d-plane 1 2 -10 5))
-(define PLANE2 (make-r3d-plane -0.5 1.2 5.6 -2.4)) ;negative a and
+(define PLANE1 (make-r3d-plane 1 -2 -3 2))
+(define PLANE2 (make-r3d-plane 2 -1 -1 1))
+(define PLANE3 (make-r3d-plane -0.5 1.2 5.6 -2.4)) ;negative a and
 ;                                                  ;d are allowed
 
 (@dd-template-rules compound) ;4 fields
@@ -326,7 +328,7 @@
 ;; interp. a line in vector parametric form
 ;; CONSTRAINT: direction vector must be nonzero
 (define LINE-X (make-r3d-line ZERO-VECTOR ;x-axis
-                              (make-r3d-vector 1 0 0)))
+                              (make-vector 1 0 0)))
 (define LINE1 (make-r3d-line VECTOR2 VECTOR3))
 
 (@dd-template-rules compound ;2 fields
@@ -344,12 +346,12 @@
 (@htdf add)
 (@signature Vector Vector -> Vector)
 ;; produce sum of two vectors
-(check-expect (add (make-r3d-vector 0 0 0) (make-r3d-vector 0 0 0))
-              (make-r3d-vector 0 0 0))
-(check-expect (add (make-r3d-vector 2 3 4) (make-r3d-vector 0 0 0))
-              (make-r3d-vector 2 3 4))
-(check-expect (add (make-r3d-vector 1 2 3) (make-r3d-vector 1.2 2.3 -3.4))
-              (make-r3d-vector 2.2 4.3 -0.4))
+(check-expect (add (make-vector 0 0 0) (make-vector 0 0 0))
+              (make-vector 0 0 0))
+(check-expect (add (make-vector 2 3 4) (make-vector 0 0 0))
+              (make-vector 2 3 4))
+(check-expect (add (make-vector 1 2 3) (make-vector 1.2 2.3 -3.4))
+              (make-vector 2.2 4.3 -0.4))
 
 ;(define (add v0 v1) ZERO-VECTOR) ;stub
 
@@ -357,28 +359,28 @@
 
 (@template
  (define (add v0 v1)
-   (... (r3d-vector-x v0)
-        (r3d-vector-y v0)
-        (r3d-vector-z v0)
-        (r3d-vector-x v1)
-        (r3d-vector-y v1)
-        (r3d-vector-z v1))))
+   (... (vector-x v0)
+        (vector-y v0)
+        (vector-z v0)
+        (vector-x v1)
+        (vector-y v1)
+        (vector-z v1))))
 
 (define (add v0 v1)
-  (make-r3d-vector (+ (r3d-vector-x v0) (r3d-vector-x v1))
-                   (+ (r3d-vector-y v0) (r3d-vector-y v1))
-                   (+ (r3d-vector-z v0) (r3d-vector-z v1))))
+  (make-vector (+ (vector-x v0) (vector-x v1))
+               (+ (vector-y v0) (vector-y v1))
+               (+ (vector-z v0) (vector-z v1))))
 
 
 (@htdf sub)
 (@signature Vector Vector -> Vector)
 ;; produce difference of two vectors
-(check-expect (sub (make-r3d-vector 0 0 0) (make-r3d-vector 0 0 0))
-              (make-r3d-vector 0 0 0))
-(check-expect (sub (make-r3d-vector 0 0 0) (make-r3d-vector 2 -4 6))
-              (make-r3d-vector -2 4 -6))
-(check-expect (sub (make-r3d-vector 3 4 5) (make-r3d-vector 1.2 2.3 3.4))
-              (make-r3d-vector 1.8 1.7 1.6))
+(check-expect (sub (make-vector 0 0 0) (make-vector 0 0 0))
+              (make-vector 0 0 0))
+(check-expect (sub (make-vector 0 0 0) (make-vector 2 -4 6))
+              (make-vector -2 4 -6))
+(check-expect (sub (make-vector 3 4 5) (make-vector 1.2 2.3 3.4))
+              (make-vector 1.8 1.7 1.6))
 
 ;(define (sub v0 v1) ZERO-VECTOR) ;stub
 
@@ -386,26 +388,26 @@
 
 (@template
  (define (sub v0 v1)
-   (... (r3d-vector-x v0)
-        (r3d-vector-y v0)
-        (r3d-vector-z v0)
-        (r3d-vector-x v1)
-        (r3d-vector-y v1)
-        (r3d-vector-z v1))))
+   (... (vector-x v0)
+        (vector-y v0)
+        (vector-z v0)
+        (vector-x v1)
+        (vector-y v1)
+        (vector-z v1))))
 
 (define (sub v0 v1)
-  (make-r3d-vector (- (r3d-vector-x v0) (r3d-vector-x v1))
-                   (- (r3d-vector-y v0) (r3d-vector-y v1))
-                   (- (r3d-vector-z v0) (r3d-vector-z v1))))
+  (make-vector (- (vector-x v0) (vector-x v1))
+               (- (vector-y v0) (vector-y v1))
+               (- (vector-z v0) (vector-z v1))))
 
 
 (@htdf scalar-multiply)
 (@signature Vector Number -> Vector)
 ;; produce vector multiplied by a scalar
 (check-expect (scalar-multiply ZERO-VECTOR 2) ZERO-VECTOR)
-(check-expect (scalar-multiply (make-r3d-vector 1 2 3) 0) ZERO-VECTOR)
-(check-expect (scalar-multiply (make-r3d-vector 1.2 3.4 -5.6) -3)
-              (make-r3d-vector -3.6 -10.2 16.8))
+(check-expect (scalar-multiply (make-vector 1 2 3) 0) ZERO-VECTOR)
+(check-expect (scalar-multiply (make-vector 1.2 3.4 -5.6) -3)
+              (make-vector -3.6 -10.2 16.8))
 
 ;(define (scalar-multiply v s) ZERO-VECTOR) ;stub
 
@@ -414,14 +416,14 @@
 (@template
  (define (scalar-multiply v s)
    (... s
-        (r3d-vector-x v)
-        (r3d-vector-y v)
-        (r3d-vector-z v))))
+        (vector-x v)
+        (vector-y v)
+        (vector-z v))))
 
 (define (scalar-multiply v s)
-  (make-r3d-vector (* (r3d-vector-x v) s)
-                   (* (r3d-vector-y v) s)
-                   (* (r3d-vector-z v) s)))
+  (make-vector (* (vector-x v) s)
+               (* (vector-y v) s)
+               (* (vector-z v) s)))
 
 
 (@htdf scalar-divide)
@@ -429,8 +431,8 @@
 ;; produce vector divided by a scalar
 ;; CONSTRAINT: scalar must be nonzero
 (check-expect (scalar-divide ZERO-VECTOR 2) ZERO-VECTOR)
-(check-expect (scalar-divide (make-r3d-vector 1.2 -4.5 7.8) 3)
-              (make-r3d-vector 0.4 -1.5 2.6))
+(check-expect (scalar-divide (make-vector 1.2 -4.5 7.8) 3)
+              (make-vector 0.4 -1.5 2.6))
 
 ;(define (scalar-divide v s) ZERO-VECTOR) ;stub
 
@@ -439,22 +441,22 @@
 (@template
  (define (scalar-divide v s)
    (... s
-        (r3d-vector-x v)
-        (r3d-vector-y v)
-        (r3d-vector-z v))))
+        (vector-x v)
+        (vector-y v)
+        (vector-z v))))
 
 (define (scalar-divide v s)
-  (make-r3d-vector (/ (r3d-vector-x v) s)
-                   (/ (r3d-vector-y v) s)
-                   (/ (r3d-vector-z v) s)))
+  (make-vector (/ (vector-x v) s)
+               (/ (vector-y v) s)
+               (/ (vector-z v) s)))
 
 
 (@htdf vector-magnitude)
 (@signature Vector -> Number)
 ;; produce magnitude of given vector
 (check-expect (vector-magnitude ZERO-VECTOR) 0)
-(check-within (vector-magnitude (make-r3d-vector 1 1 1)) (sqrt 3) APPROX)
-(check-expect (vector-magnitude (make-r3d-vector -2 3 -6)) 7)
+(check-within (vector-magnitude (make-vector 1 1 1)) (sqrt 3) APPROX)
+(check-expect (vector-magnitude (make-vector -2 3 -6)) 7)
 
 ;(define (vector-magnitude v) 0) ;stub
 
@@ -462,35 +464,35 @@
 
 (@template
  (define (vector-magnitude v)
-   (... (r3d-vector-x v)
-        (r3d-vector-y v)
-        (r3d-vector-z v))))
+   (... (vector-x v)
+        (vector-y v)
+        (vector-z v))))
 
 (define (vector-magnitude v)
-  (sqrt (+ (sqr (r3d-vector-x v))
-           (sqr (r3d-vector-y v))
-           (sqr (r3d-vector-z v)))))
+  (sqrt (+ (sqr (vector-x v))
+           (sqr (vector-y v))
+           (sqr (vector-z v)))))
 
 
 (@htdf vector->point)
 (@signature Vector -> Point)
 ;; produce point given position vector
 (check-expect (vector->point ZERO-VECTOR) ORIGIN)
-(check-expect (vector->point (make-r3d-vector 14.7 25.8 36.9))
+(check-expect (vector->point (make-vector 14.7 25.8 36.9))
               (make-point 14.7 25.8 36.9))
 
 (@template-origin Vector)
 
 (@template
  (define (vector->point p)
-   (... (r3d-vector-x p)
-        (r3d-vector-y p)
-        (r3d-vector-z p))))
+   (... (vector-x p)
+        (vector-y p)
+        (vector-z p))))
 
 (define (vector->point p)
-  (make-point (r3d-vector-x p)
-              (r3d-vector-y p)
-              (r3d-vector-z p)))
+  (make-point (vector-x p)
+              (vector-y p)
+              (vector-z p)))
 
 
 (@htdf point->vector)
@@ -498,7 +500,7 @@
 ;; produce position vector of given point
 (check-expect (point->vector ORIGIN) ZERO-VECTOR)
 (check-expect (point->vector (make-point 14.7 25.8 36.9))
-              (make-r3d-vector 14.7 25.8 36.9))
+              (make-vector 14.7 25.8 36.9))
 
 (@template-origin Point)
 
@@ -509,9 +511,9 @@
         (point-z p))))
 
 (define (point->vector p)
-  (make-r3d-vector (point-x p)
-                   (point-y p)
-                   (point-z p)))
+  (make-vector (point-x p)
+               (point-y p)
+               (point-z p)))
 
 
 (@htdf points->vector)
@@ -519,13 +521,13 @@
 ;; produce vector from first to second point
 (check-expect (points->vector (make-point 0 0 0)
                               (make-point 0 0 0))
-              (make-r3d-vector 0 0 0))
+              (make-vector 0 0 0))
 (check-expect (points->vector (make-point 0 0 0)
                               (make-point 1 -2 3))
-              (make-r3d-vector 1 -2 3))
+              (make-vector 1 -2 3))
 (check-expect (points->vector (make-point 1.2 -3.4 5.6)
                               (make-point 1.3 5.7 -9.1))
-              (make-r3d-vector 0.1 9.1 -14.7))
+              (make-vector 0.1 9.1 -14.7))
 
 ;(define (points->vector p0 p1) ZERO-VECTOR) ;stub
 
@@ -541,20 +543,20 @@
         (point-z p1))))
 
 (define (points->vector p0 p1)
-  (make-r3d-vector (- (point-x p1) (point-x p0))
-                   (- (point-y p1) (point-y p0))
-                   (- (point-z p1) (point-z p0))))
+  (make-vector (- (point-x p1) (point-x p0))
+               (- (point-y p1) (point-y p0))
+               (- (point-z p1) (point-z p0))))
 
 
 (@htdf cross-product)
 (@signature Vector Vector -> Vector)
 ;; produce cross product of given vectors
-(check-expect (cross-product (make-r3d-vector 2 0 0)
-                             (make-r3d-vector 0 2 0))
-              (make-r3d-vector 0 0 4))
-(check-expect (cross-product (make-r3d-vector 0 2 0)
-                             (make-r3d-vector 2 0 0))
-              (make-r3d-vector 0 0 -4))
+(check-expect (cross-product (make-vector 2 0 0)
+                             (make-vector 0 2 0))
+              (make-vector 0 0 4))
+(check-expect (cross-product (make-vector 0 2 0)
+                             (make-vector 2 0 0))
+              (make-vector 0 0 -4))
 
 ;(define (cross-product v0 v1) ZERO-VECTOR) ;stub
 
@@ -562,33 +564,33 @@
 
 (@template
  (define (cross-product v0 v1)
-   (... (r3d-vector-x v0)
-        (r3d-vector-y v0)
-        (r3d-vector-z v0)
-        (r3d-vector-x v1)
-        (r3d-vector-y v1)
-        (r3d-vector-z v1))))
+   (... (vector-x v0)
+        (vector-y v0)
+        (vector-z v0)
+        (vector-x v1)
+        (vector-y v1)
+        (vector-z v1))))
 
 (define (cross-product v0 v1)
-  (make-r3d-vector (- (* (r3d-vector-y v0) (r3d-vector-z v1))
-                      (* (r3d-vector-y v1) (r3d-vector-z v0)))
-                   (- (* (r3d-vector-z v0) (r3d-vector-x v1))
-                      (* (r3d-vector-z v1) (r3d-vector-x v0)))
-                   (- (* (r3d-vector-x v0) (r3d-vector-y v1))
-                      (* (r3d-vector-x v1) (r3d-vector-y v0)))))
+  (make-vector (- (* (vector-y v0) (vector-z v1))
+                  (* (vector-y v1) (vector-z v0)))
+               (- (* (vector-z v0) (vector-x v1))
+                  (* (vector-z v1) (vector-x v0)))
+               (- (* (vector-x v0) (vector-y v1))
+                  (* (vector-x v1) (vector-y v0)))))
 
 
 (@htdf dot-product)
 (@signature Vector Vector -> Number)
 ;; produce dot product of given vectors
-(check-expect (dot-product (make-r3d-vector 2 0 0)
-                           (make-r3d-vector 0 2 2))
+(check-expect (dot-product (make-vector 2 0 0)
+                           (make-vector 0 2 2))
               0)
-(check-expect (dot-product (make-r3d-vector 0 2 0)
-                           (make-r3d-vector 0 3 0))
+(check-expect (dot-product (make-vector 0 2 0)
+                           (make-vector 0 3 0))
               6)
-(check-expect (dot-product (make-r3d-vector 1.2 3.4 5.6)
-                           (make-r3d-vector 9.8 -7.6 5.4))
+(check-expect (dot-product (make-vector 1.2 3.4 5.6)
+                           (make-vector 9.8 -7.6 5.4))
               16.16)
 
 ;(define (dot-product v0 v1) 0) ;stub
@@ -597,17 +599,17 @@
 
 (@template
  (define (dot-product v0 v1)
-   (... (r3d-vector-x v0)
-        (r3d-vector-y v0)
-        (r3d-vector-z v0)
-        (r3d-vector-x v1)
-        (r3d-vector-y v1)
-        (r3d-vector-z v1))))
+   (... (vector-x v0)
+        (vector-y v0)
+        (vector-z v0)
+        (vector-x v1)
+        (vector-y v1)
+        (vector-z v1))))
 
 (define (dot-product v0 v1)
-  (+ (* (r3d-vector-x v0) (r3d-vector-x v1))
-     (* (r3d-vector-y v0) (r3d-vector-y v1))
-     (* (r3d-vector-z v0) (r3d-vector-z v1))))
+  (+ (* (vector-x v0) (vector-x v1))
+     (* (vector-y v0) (vector-y v1))
+     (* (vector-z v0) (vector-z v1))))
 
 
 (@htdf normal)
@@ -617,12 +619,12 @@
                                          (make-point 2 0 0)
                                          (make-point 0 2 0)
                                          "black"))
-              (make-r3d-vector 0 0 4))
+              (make-vector 0 0 4))
 (check-expect (normal (make-r3d-triangle (make-point 0 0 0)
                                          (make-point 0 2 0)
                                          (make-point 2 0 0)
                                          "black"))
-              (make-r3d-vector 0 0 -4))
+              (make-vector 0 0 -4))
 
 ;(define (normal t) ZERO-VECTOR) ;stub
 
@@ -644,14 +646,14 @@
 (@signature Vector Vector -> Number)
 ;; produce angle between two given vectors in radians
 ;; CONSTRAINT: both vectors must be nonzero
-(check-expect (vector-angle (make-r3d-vector 1 0 0)
-                            (make-r3d-vector 1 0 0))
+(check-expect (vector-angle (make-vector 1 0 0)
+                            (make-vector 1 0 0))
               0)
-(check-within (vector-angle (make-r3d-vector 1 0 0)
-                            (make-r3d-vector 0 2 3))
+(check-within (vector-angle (make-vector 1 0 0)
+                            (make-vector 0 2 3))
               (/ pi 2) APPROX)
-(check-within (vector-angle (make-r3d-vector 1 0 0)
-                            (make-r3d-vector -1 0 0))
+(check-within (vector-angle (make-vector 1 0 0)
+                            (make-vector -1 0 0))
               pi APPROX)
 
 ;(define (vector-angle v0 v1) 0) ;stub
@@ -679,17 +681,17 @@
 
 (@template
  (define (normal->plane n p)
-   (... (r3d-vector-x n)
-        (r3d-vector-y n)
-        (r3d-vector-z n)
-        (r3d-vector-x p)
-        (r3d-vector-y p)
-        (r3d-vector-z p))))
+   (... (vector-x n)
+        (vector-y n)
+        (vector-z n)
+        (vector-x p)
+        (vector-y p)
+        (vector-z p))))
 
 (define (normal->plane n p)
-  (make-r3d-plane (r3d-vector-x n)
-                  (r3d-vector-y n)
-                  (r3d-vector-z n)
+  (make-r3d-plane (vector-x n)
+                  (vector-y n)
+                  (vector-z n)
                   (dot-product n p)))
 
 
@@ -715,32 +717,24 @@
   (normal->plane (normal t) (point->vector (r3d-triangle-v0 t))))
 
 
-(@htdf plane-intersect)
-(@signature Plane -> Line)
-;; produce parametric line of intersection between two planes
-;!!! examples
+(@htdf plane-parallel?)
+(@signature Plane Plane -> Boolean)
+;; produce true if given planes are parallel, otherwise false
+(check-expect (plane-parallel? (make-r3d-plane 0 2 3 9)
+                               (make-r3d-plane -1 4 2 7)) false)
+(check-expect (plane-parallel? (make-r3d-plane 1 -2 4 5)
+                               (make-r3d-plane 1 -2 4 9)) true)
+(check-expect (plane-parallel? (make-r3d-plane 2 3 4 -5)
+                               (make-r3d-plane 2 3 4 -5)) true)
+(check-expect (plane-parallel? (make-r3d-plane 1 -4 5 7)
+                               (make-r3d-plane 1 -4 -5 7)) false)
 
-;(define (plane-intersect p0 p1) LINE-X) ;stub
-
-(@template-origin fn-composition)
-
-(define (plane-intersect p0 p1)
-  (plane-y-component p0 (plane-x-component p0 p1)))
-
-;; NOTE: The following functions exist to prevent recomputation.
-;;       local is not used as we decided to stick to strict BSL.
-
-(@htdf plane-x-component)
-(@signature Plane Plane -> Line)
-;; produce x component of incomplete line of intersection between two planes
-;!!! examples
-
-;(define (plane-x-component p0 p1) LINE-X) ;stub
+;(define (plane-parallel? p0 p1) false) ;stub
 
 (@template-origin Plane)
 
 (@template
- (define (plane-x-component p0 p1)
+ (define (plane-parallel? p0 p1)
    (... (r3d-plane-a p0)
         (r3d-plane-b p0)
         (r3d-plane-c p0)
@@ -750,92 +744,234 @@
         (r3d-plane-c p1)
         (r3d-plane-d p1))))
 
-(define (plane-x-component p0 p1)
-  (make-r3d-line (make-r3d-vector (/ (- (* (r3d-plane-d p0) (r3d-plane-b p1))
-                                        (* (r3d-plane-d p1) (r3d-plane-b p0)))
-                                     (- (* (r3d-plane-a p0) (r3d-plane-b p1))
-                                        (* (r3d-plane-a p1) (r3d-plane-b p0))))
-                                  0 0)
-                 (make-r3d-vector (/ (- (* (r3d-plane-b p0) (r3d-plane-c p1))
-                                        (* (r3d-plane-b p1) (r3d-plane-c p0)))
-                                     (- (* (r3d-plane-a p0) (r3d-plane-b p1))
-                                        (* (r3d-plane-a p1) (r3d-plane-b p0))))
-                                  0 1)))
+(define (plane-parallel? p0 p1)
+  (= (/ (r3d-plane-a p0) (r3d-plane-a p1))
+     (/ (r3d-plane-b p0) (r3d-plane-b p1))
+     (/ (r3d-plane-c p0) (r3d-plane-c p1))))
 
 
-(@htdf plane-y-component)
-(@signature Plane Line -> Line)
-;; produce line of intersection from x component of line and one plane
+(@htdf plane-intersect)
+(@signature Plane Plane -> Line)
+;; produce parametric line of intersection between two planes
+;; CONSTRAINT: planes must be nonparallel
+(check-expect (plane-intersect PLANE1 PLANE2)
+              (make-r3d-line (make-vector 0 -1 0)
+                             (make-vector -1/3 -5/3 1)))
+
+;(define (plane-intersect p0 p1) LINE-X) ;stub
+
+(@template-origin fn-composition)
+
+(define (plane-intersect p0 p1)
+  (intersect-other p0 p1
+                   (intersect-first p0 p1
+                                    (denominator-x p0 p1)
+                                    (denominator-y p0 p1)
+                                    (denominator-z p0 p1))))
+
+
+;; NOTE: The following functions exist to prevent recomputation;
+;;       local is not used as we decided to stick to strict BSL.
+
+
+(define (denominator-x p0 p1) (- (* (r3d-plane-a p0) (r3d-plane-b p1))
+                                 (* (r3d-plane-a p1) (r3d-plane-b p0))))
+(define (denominator-y p0 p1) (- (* (r3d-plane-a p0) (r3d-plane-c p1))
+                                 (* (r3d-plane-a p1) (r3d-plane-c p0))))
+(define (denominator-z p0 p1) (- (* (r3d-plane-c p0) (r3d-plane-b p1))
+                                 (* (r3d-plane-c p1) (r3d-plane-b p0))))
+
+
+(@htdf intersect-first)
+(@signature Plane Plane -> Line)
+;; produce first component of incomplete line of intersection between two planes
 ;!!! examples
 
-;(define (plane-y-component p x) LINE-X) ;stub
+;(define (intersect-first p0 p1) LINE-X) ;stub
+
+(@template-origin Plane)
+
+(@template
+ (define (intersect-first p0 p1)
+   (... (r3d-plane-a p0)
+        (r3d-plane-b p0)
+        (r3d-plane-c p0)
+        (r3d-plane-d p0)
+        (r3d-plane-a p1)
+        (r3d-plane-b p1)
+        (r3d-plane-c p1)
+        (r3d-plane-d p1))))
+
+(define (intersect-first p0 p1 dx dy dz)
+  (cond [(not (zero? dx))
+         (make-r3d-line
+          (make-vector (/ (- (* (r3d-plane-d p0) (r3d-plane-b p1))
+                             (* (r3d-plane-d p1) (r3d-plane-b p0))) dx)
+                       0 #i0)
+          (make-vector (/ (- (* (r3d-plane-b p0) (r3d-plane-c p1))
+                             (* (r3d-plane-b p1) (r3d-plane-c p0))) dx)
+                       0 #i1))]
+        [(not (zero? dy))
+         (make-r3d-line
+          (make-vector (/ (- (* (r3d-plane-d p0) (r3d-plane-c p1))
+                             (* (r3d-plane-d p1) (r3d-plane-c p0))) dy)
+                       #i0 0)
+          (make-vector (/ (- (* (r3d-plane-c p0) (r3d-plane-b p1))
+                             (* (r3d-plane-c p1) (r3d-plane-b p0))) dy)
+                       #i1 0))]
+        [else
+         (make-r3d-line
+          (make-vector #i0 0
+                       (/ (- (* (r3d-plane-d p0) (r3d-plane-b p1))
+                             (* (r3d-plane-d p1) (r3d-plane-b p0))) dz))
+          (make-vector #i1 0
+                       (/ (- (* (r3d-plane-b p0) (r3d-plane-a p1))
+                             (* (r3d-plane-b p1) (r3d-plane-a p0))) dz)))]))
+
+
+(@htdf intersect-other)
+(@signature Plane Plane Line -> Line)
+;; produce other component of line of intersection from component and one plane
+;!!! examples
+
+;(define (intersect-other p0 p1 l) LINE-X) ;stub
 
 (@template-origin Line)
 
 (@template
- (define (plane-y-component p x)
-   (... p
-        (fn-for-vector (r3d-line-position x))
-        (fn-for-vector (r3d-line-direction x)))))
+ (define (intersect-other p0 p1 l)
+   (... p0 p1
+        (fn-for-vector (r3d-line-position l))
+        (fn-for-vector (r3d-line-direction l)))))
 
-(define (plane-y-component p x)
-  (make-r3d-line (plane-y-position p (r3d-line-position x))
-                 (plane-y-direction p (r3d-line-direction x))))
+(define (intersect-other p0 p1 l)
+  (make-r3d-line (intersect-position p0 p1 (r3d-line-position l))
+                 (intersect-direction p0 p1 (r3d-line-direction l))))
 
 
-(@htdf plane-y-position)
-(@signature Plane Vector -> Vector)
-;; produce position vector of y component of line of intersection
+(@htdf intersect-position)
+(@signature Plane Plane Vector -> Vector)
+;; produce position vector of other component of line of intersection
 ;!!! examples
 
-;(define (plane-y-position p pos) ZERO-VECTOR) ;stub
+;(define (intersect-position p0 p1 pos) ZERO-VECTOR) ;stub
 
 (@template-origin Plane Vector)
 
 (@template
- (define (plane-y-position p pos)
-   (... (r3d-plane-a p)
-        (r3d-plane-b p)
-        (r3d-plane-c p)
-        (r3d-plane-d p)
-        (r3d-vector-x pos)
-        (r3d-vector-y pos)
-        (r3d-vector-z pos))))
+ (define (intersect-position p0 p1 pos)
+   (... (r3d-plane-a p0)
+        (r3d-plane-b p0)
+        (r3d-plane-c p0)
+        (r3d-plane-d p0)
+        (r3d-plane-a p1)
+        (r3d-plane-b p1)
+        (r3d-plane-c p1)
+        (r3d-plane-d p1)
+        (vector-x pos)
+        (vector-y pos)
+        (vector-z pos))))
 
-(define (plane-y-position p pos)
-  (make-r3d-vector (r3d-vector-x pos)
-                   (/ (- (r3d-plane-d p)
-                         (* (r3d-plane-a p) (r3d-vector-x pos)))
-                      (r3d-plane-b p))
-                   0))
+(define (intersect-position p0 p1 pos)
+  (cond [(inexact? (vector-z pos))
+         (if (zero? (r3d-plane-b p1))
+             (make-vector (vector-x pos)
+                          (/ (- (r3d-plane-d p0)
+                                (* (r3d-plane-a p0) (vector-x pos)))
+                             (r3d-plane-b p0))
+                          0)
+             (make-vector (vector-x pos)
+                          (/ (- (r3d-plane-d p1)
+                                (* (r3d-plane-a p1) (vector-x pos)))
+                             (r3d-plane-b p1))
+                          0))]
+        [(inexact? (vector-y pos))
+         (if (zero? (r3d-plane-b p1))
+             (make-vector (vector-x pos)
+                          0
+                          (/ (- (r3d-plane-d p0)
+                                (* (r3d-plane-a p0) (vector-x pos)))
+                             (r3d-plane-c p0)))
+             (make-vector (vector-x pos)
+                          0
+                          (/ (- (r3d-plane-d p1)
+                                (* (r3d-plane-a p1) (vector-x pos)))
+                             (r3d-plane-c p1))))]
+        [else
+         (if (zero? (r3d-plane-b p1))
+             (make-vector 0
+                          (vector-y pos)
+                          (/ (- (r3d-plane-d p0)
+                                (* (r3d-plane-b p0) (vector-y pos)))
+                             (r3d-plane-c p0)))
+             (make-vector 0
+                          (vector-y pos)
+                          (/ (- (r3d-plane-d p1)
+                                (* (r3d-plane-b p1) (vector-y pos)))
+                             (r3d-plane-c p1))))]))
 
 
-(@htdf plane-y-direction)
+(@htdf intersect-direction)
 (@signature Plane Vector -> Vector)
-;; produce direction vector of y component of line of intersection
+;; produce direction vector of other component of line of intersection
 ;!!! examples
 
-;(define (plane-y-direction p dir) dir) ;stub
-;                                       ;note that direction vector is nonzero
+;(define (intersect-direction p dir) dir) ;stub
+;                                         ;note that direction vector is nonzero
 
 (@template-origin Plane Vector)
 
 (@template
- (define (plane-y-direction p dir)
-   (... (r3d-plane-a p)
-        (r3d-plane-b p)
-        (r3d-plane-c p)
-        (r3d-plane-d p)
-        (r3d-vector-x dir)
-        (r3d-vector-y dir)
-        (r3d-vector-z dir))))
+ (define (intersect-direction p dir)
+   (... (r3d-plane-a p0)
+        (r3d-plane-b p0)
+        (r3d-plane-c p0)
+        (r3d-plane-d p0)
+        (r3d-plane-a p1)
+        (r3d-plane-b p1)
+        (r3d-plane-c p1)
+        (r3d-plane-d p1)
+        (vector-x dir)
+        (vector-y dir)
+        (vector-z dir))))
 
-(define (plane-y-direction p dir)
-  (make-r3d-vector (r3d-vector-x dir)
-                   (/ (- (- (r3d-plane-c p))
-                         (* (r3d-plane-a p) (r3d-vector-x dir)))
-                      (r3d-plane-b p))
-                   1))
+(define (intersect-direction p0 p1 dir)
+  (cond [(inexact? (vector-z dir))
+         (if (zero? (r3d-plane-b p1))
+             (make-vector (vector-x dir)
+                          (/ (- (- (r3d-plane-c p0))
+                                (* (r3d-plane-a p0) (vector-x dir)))
+                             (r3d-plane-b p0))
+                          1)
+             (make-vector (vector-x dir)
+                          (/ (- (- (r3d-plane-c p1))
+                                (* (r3d-plane-a p1) (vector-x dir)))
+                             (r3d-plane-b p1))
+                          1))]
+        [(inexact? (vector-y dir))
+         (if (zero? (r3d-plane-b p1))
+             (make-vector (vector-x dir)
+                          1
+                          (/ (- (- (r3d-plane-b p0))
+                                (* (r3d-plane-a p0) (vector-x dir)))
+                             (r3d-plane-c p0)))
+             (make-vector (vector-x dir)
+                          1
+                          (/ (- (- (r3d-plane-b p1))
+                                (* (r3d-plane-a p1) (vector-x dir)))
+                             (r3d-plane-c p1))))]
+        [else
+         (if (zero? (r3d-plane-b p1))
+             (make-vector 1
+                          (vector-y dir)
+                          (/ (- (- (r3d-plane-a p0))
+                                (* (r3d-plane-b p0) (vector-y dir)))
+                             (r3d-plane-c p0)))
+             (make-vector 1
+                          (vector-y dir)
+                          (/ (- (- (r3d-plane-a p1))
+                                (* (r3d-plane-b p1) (vector-y dir)))
+                             (r3d-plane-c p1))))]))
 
 #|
 TODO: Subdividing overlapping mesh faces
@@ -845,23 +981,24 @@ BASIC PROCEDURE
 
 For each mesh face added to buffer, perform a comparison with each existing
 element as follows:
-1. Compute distance between centroids. If distance is too great (rigorous
-   definition of "too great" TBD), end.
+1. Compute distance between centroids. If distance is greater than or equal to
+   the sum of the greatest distances between the centroid and farthest vertex
+   in both triangles, skip to next comparison.
 2. Compute line of intersection between planes containing both triangles.
 3. Check if computed line of intersection intersects both triangles.
-   3a. Performing 2D checks on two sides of each triangle is sufficient.
+   3a. Performing checks on two sides of each triangle is sufficient.
    3b. If either of the triangles have both intersection points very close
-       (rigorous definition TBD) to a vertex, end.
-4. If previous check returned false, end.
+       (within the constant APPROX) to a vertex, return false.
+4. If previous check returned false, skip to next comparison.
 5. Subdivide both triangles along line of intersection.
    5a. For each subdivision:
    5b. Determine which two edges are intersected by the line.
    5c. Create a mesh face from the triangle created by cutting along the line.
    5d. Divide remaining quadrilateral into two triangular mesh faces.
 6. The existing mesh face that has been subdivided is reinserted into the list
-   without checks. The new mesh face is inserted normally (with this procedure).
+   without checks. The new mesh faces are inserted with this procedure.
+   6a. If possible, skip checks for all polygons that have been checked before.
 
-Note: "End" refers to inserting the mesh face directly without any subdivision.
 |#
 
 ;;
@@ -938,7 +1075,7 @@ Note: "End" refers to inserting the mesh face directly without any subdivision.
 (@htdd Camera)
 (define-struct camera (gui objects position light time))
 ;; Camera is (make-camera GUIState ListOfObject Point Point Natural)
-;; interp. GUI state, object list, position of camera/light, time in ticks since
+;; interp. GUI state, object list, position of camera/light, time (ticks) since
 ;;         last user interaction. The viewport camera always faces (0, 0, 0).
 (define CAM1 (make-camera GUI1 empty (make-point 1 1 1) (make-point 2 2 2) 0))
 
