@@ -774,6 +774,7 @@
 ;;       local is not used as we decided to stick to strict BSL.
 
 
+;!!! proper HtDF
 (define (denominator-x p0 p1) (- (* (r3d-plane-a p0) (r3d-plane-b p1))
                                  (* (r3d-plane-a p1) (r3d-plane-b p0))))
 (define (denominator-y p0 p1) (- (* (r3d-plane-a p0) (r3d-plane-c p1))
@@ -900,15 +901,15 @@
         [else
          (if (zero? (r3d-plane-b p1))
              (make-vector 0
-                          (vector-y pos)
                           (/ (- (r3d-plane-d p0)
-                                (* (r3d-plane-b p0) (vector-y pos)))
-                             (r3d-plane-c p0)))
+                                (* (r3d-plane-c p0) (vector-z pos)))
+                             (r3d-plane-b p0))
+                          (vector-z pos))
              (make-vector 0
-                          (vector-y pos)
                           (/ (- (r3d-plane-d p1)
-                                (* (r3d-plane-b p1) (vector-y pos)))
-                             (r3d-plane-c p1))))]))
+                                (* (r3d-plane-c p1) (vector-z pos)))
+                             (r3d-plane-b p1))
+                          (vector-z pos)))]))
 
 
 (@htdf intersect-direction)
@@ -961,17 +962,17 @@
                                 (* (r3d-plane-a p1) (vector-x dir)))
                              (r3d-plane-c p1))))]
         [else
-         (if (zero? (r3d-plane-b p1))
+         (if (zero? (r3d-plane-c p1))
              (make-vector 1
-                          (vector-y dir)
                           (/ (- (- (r3d-plane-a p0))
-                                (* (r3d-plane-b p0) (vector-y dir)))
-                             (r3d-plane-c p0)))
+                                (* (r3d-plane-c p0) (vector-z dir)))
+                             (r3d-plane-b p0))
+                          (vector-z dir))
              (make-vector 1
-                          (vector-y dir)
                           (/ (- (- (r3d-plane-a p1))
-                                (* (r3d-plane-b p1) (vector-y dir)))
-                             (r3d-plane-c p1))))]))
+                                (* (r3d-plane-c p1) (vector-z dir)))
+                             (r3d-plane-b p1))
+                          (vector-z dir)))]))
 
 #|
 TODO: Subdividing overlapping mesh faces
@@ -983,13 +984,13 @@ For each mesh face added to buffer, perform a comparison with each existing
 element as follows:
 1. Compute distance between centroids. If distance is greater than or equal to
    the sum of the greatest distances between the centroid and farthest vertex
-   in both triangles, skip to next comparison.
+   in both triangles, skip this comparison.
 2. Compute line of intersection between planes containing both triangles.
 3. Check if computed line of intersection intersects both triangles.
    3a. Performing checks on two sides of each triangle is sufficient.
    3b. If either of the triangles have both intersection points very close
        (within the constant APPROX) to a vertex, return false.
-4. If previous check returned false, skip to next comparison.
+4. If previous check returned false, skip this comparison.
 5. Subdivide both triangles along line of intersection.
    5a. For each subdivision:
    5b. Determine which two edges are intersected by the line.
