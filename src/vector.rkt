@@ -23,6 +23,7 @@
 ;; prefix to prevent conflicts with the base language
 ;;
 
+
 (@htdd Vector)
 (define-struct vector (x y z))
 ;; Vector is (make-vector Number Number Number)
@@ -38,6 +39,7 @@
   (... (vector-x v)   ;Number
        (vector-y v)   ;Number
        (vector-z v))) ;Number
+
 
 
 (@htdd Plane)
@@ -58,6 +60,7 @@
        (r3d-plane-b c)   ;Number
        (r3d-plane-c c)   ;Number
        (r3d-plane-d c))) ;Number
+
 
 
 (@htdd Line)
