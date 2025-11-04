@@ -47,6 +47,7 @@
        (cuboid-colour c)))                ;Colour
 
 
+
 (@htdd Icosphere)
 (define-struct icosphere (position rotation x-scale y-scale z-scale colour))
 ;; Icosphere is (make-icosphere Point Euler Number Number Number Colour)
@@ -75,6 +76,7 @@
        (icosphere-y-scale i)                 ;Number
        (icosphere-z-scale i)                 ;Number
        (icosphere-colour i)))                ;Colour
+
 
 
 (@htdd Mesh)
@@ -114,6 +116,7 @@
               (fn-for-mesh (rest m)))]))
 
 
+
 (@htdd Object)
 ;; Object is one of:
 ;;  - Cuboid
@@ -139,6 +142,7 @@
          (... (fn-for-icosphere o))]
         [else
          (... (fn-for-mesh o))]))
+
 
 
 (@htdd ListOfObject)
