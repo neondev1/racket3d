@@ -521,38 +521,80 @@
 (@template-origin fn-composition)
 
 (define (plane-intersect p0 p1)
-  (intersect-other p0 p1
-                   (intersect-first p0 p1
-                                    (denominator-x p0 p1)
-                                    (denominator-y p0 p1)
-                                    (denominator-z p0 p1))))
+  (intersect-other p0 p1 (intersect-first p0 p1 (intersect-denominator p0 p1))))
 
 
-;; NOTE: The following functions exist to prevent recomputation;
+;; NOTE: The following functions exist to reduce recomputation;
 ;;       local is not used here as we are sticking to strict BSL.
 
 
-;!!! proper HtDF
-(define (denominator-x p0 p1) (- (* (r3d-plane-a p0) (r3d-plane-b p1))
-                                 (* (r3d-plane-a p1) (r3d-plane-b p0))))
-(define (denominator-y p0 p1) (- (* (r3d-plane-a p0) (r3d-plane-c p1))
-                                 (* (r3d-plane-a p1) (r3d-plane-c p0))))
-(define (denominator-z p0 p1) (- (* (r3d-plane-c p0) (r3d-plane-b p1))
-                                 (* (r3d-plane-c p1) (r3d-plane-b p0))))
-
-
-
 (@htdf intersect-first)
-(@signature Plane Plane -> Line)
+(@signature Plane Plane Number Number -> Line)
 ;; produce first component of incomplete line of intersection between two planes
 ;!!! examples
 
-;(define (intersect-first p0 p1) LINE-X) ;stub
+;(define (intersect-first p0 p1 d) LINE-X) ;stub
 
 (@template-origin Plane)
 
 (@template
- (define (intersect-first p0 p1)
+ (define (intersect-first p0 p1 d)
+   (... (r3d-plane-a p0)
+        (r3d-plane-b p0)
+        (r3d-plane-c p0)
+        (r3d-plane-d p0)
+        (r3d-plane-a p1)
+        (r3d-plane-b p1)
+        (r3d-plane-c p1)
+        (r3d-plane-d p1)
+        d)))
+
+(define (intersect-first p0 p1 d)
+  (cond [(not (zero? d))
+         (make-r3d-line
+          (make-vector (/ (- (* (r3d-plane-d p0) (r3d-plane-b p1))
+                             (* (r3d-plane-d p1) (r3d-plane-b p0))) d)
+                       0 #i0)
+          (make-vector (/ (- (* (r3d-plane-b p0) (r3d-plane-c p1))
+                             (* (r3d-plane-b p1) (r3d-plane-c p0))) d)
+                       0 #i1))]
+        [(not (zero? (- (* (r3d-plane-a p0) (r3d-plane-c p1))
+                        (* (r3d-plane-a p1) (r3d-plane-c p0)))))
+         (make-r3d-line
+          (make-vector (/ (- (* (r3d-plane-d p0) (r3d-plane-c p1))
+                             (* (r3d-plane-d p1) (r3d-plane-c p0)))
+                          (- (* (r3d-plane-a p0) (r3d-plane-c p1))
+                             (* (r3d-plane-a p1) (r3d-plane-c p0))))
+                       #i0 0)
+          (make-vector (/ (- (* (r3d-plane-c p0) (r3d-plane-b p1))
+                             (* (r3d-plane-c p1) (r3d-plane-b p0)))
+                          (- (* (r3d-plane-a p0) (r3d-plane-c p1))
+                             (* (r3d-plane-a p1) (r3d-plane-c p0))))
+                       #i1 0))]
+        [else
+         (make-r3d-line
+          (make-vector #i0 0
+                       (/ (- (* (r3d-plane-d p0) (r3d-plane-b p1))
+                             (* (r3d-plane-d p1) (r3d-plane-b p0)))
+                          (- (* (r3d-plane-c p0) (r3d-plane-b p1))
+                             (* (r3d-plane-c p1) (r3d-plane-b p0)))))
+          (make-vector #i1 0
+                       (/ (- (* (r3d-plane-b p0) (r3d-plane-a p1))
+                             (* (r3d-plane-b p1) (r3d-plane-a p0)))
+                          (- (* (r3d-plane-c p0) (r3d-plane-b p1))
+                             (* (r3d-plane-c p1) (r3d-plane-b p0))))))]))
+
+
+
+(@htdf intersect-denominator)
+(@signature Plane Plane -> Number)
+;; produce denominator of x component of line of intersection of given planes
+;!!! examples
+
+(@template-origin Plane)
+
+(@template
+ (define (intersect-denominator p0 p1)
    (... (r3d-plane-a p0)
         (r3d-plane-b p0)
         (r3d-plane-c p0)
@@ -562,31 +604,9 @@
         (r3d-plane-c p1)
         (r3d-plane-d p1))))
 
-(define (intersect-first p0 p1 dx dy dz)
-  (cond [(not (zero? dx))
-         (make-r3d-line
-          (make-vector (/ (- (* (r3d-plane-d p0) (r3d-plane-b p1))
-                             (* (r3d-plane-d p1) (r3d-plane-b p0))) dx)
-                       0 #i0)
-          (make-vector (/ (- (* (r3d-plane-b p0) (r3d-plane-c p1))
-                             (* (r3d-plane-b p1) (r3d-plane-c p0))) dx)
-                       0 #i1))]
-        [(not (zero? dy))
-         (make-r3d-line
-          (make-vector (/ (- (* (r3d-plane-d p0) (r3d-plane-c p1))
-                             (* (r3d-plane-d p1) (r3d-plane-c p0))) dy)
-                       #i0 0)
-          (make-vector (/ (- (* (r3d-plane-c p0) (r3d-plane-b p1))
-                             (* (r3d-plane-c p1) (r3d-plane-b p0))) dy)
-                       #i1 0))]
-        [else
-         (make-r3d-line
-          (make-vector #i0 0
-                       (/ (- (* (r3d-plane-d p0) (r3d-plane-b p1))
-                             (* (r3d-plane-d p1) (r3d-plane-b p0))) dz))
-          (make-vector #i1 0
-                       (/ (- (* (r3d-plane-b p0) (r3d-plane-a p1))
-                             (* (r3d-plane-b p1) (r3d-plane-a p0))) dz)))]))
+(define (intersect-denominator p0 p1)
+  (- (* (r3d-plane-a p0) (r3d-plane-b p1))
+     (* (r3d-plane-a p1) (r3d-plane-b p0))))
 
 
 
