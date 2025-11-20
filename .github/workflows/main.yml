@@ -3,7 +3,7 @@ name: Tests
 on:
   push:
     paths:
-    - 'racket3d.rkt'
+    - 'src/**'
     - '.github/workflows/**'
 
 jobs:
