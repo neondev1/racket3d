@@ -128,9 +128,7 @@
 (define OBJECT3 MESH2)
 
 (@dd-template-rules one-of   ;3 cases
-                    compound ;Cuboid
                     ref      ;Cuboid
-                    compound ;Icosphere
                     ref      ;Icosphere
                     compound ;Mesh
                     ref)     ;Mesh
