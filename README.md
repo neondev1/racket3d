@@ -11,9 +11,12 @@ More details are available in the source code.
 
 Polygon culling may be added in the future to improve performance.
 
-## Style Rule Deviations
+## Major deviations
 - A single Racket (non-BSL) file that exports `provide` is used to allow for splitting the project into multiple files.
 - As `provide` cannot export `@htdd` tags, any tags from data definitions in `require`d files are placed directly below the line containing the `require`.
+- As `local` is not available in BSL, inner functions with accumulators are defined at the top level with the suffix `--acc`.
+
+## Style deviations
 - Most data structures are namespaced with the `r3d-` prefix to prevent naming conflicts and consistency.
   Heavily used structures, such as `point`, `euler` and `vector`, do not follow this convention to reduce verbosity.
 - Data definition examples are named without abbreviation for single word type names in order to prevent overlap and improve readability.
