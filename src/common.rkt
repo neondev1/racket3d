@@ -91,22 +91,19 @@
 
 
 (@htdd Triangle)
-(define-struct r3d-triangle (v0 v1 v2 colour))
-;; Triangle is (make-r3d-triangle Point Point Point Colour)
-;; interp. the three vertices and fill colour of a triangle
+(define-struct r3d-triangle (v0 v1 v2))
+;; Triangle is (make-r3d-triangle Point Point Point)
+;; interp. the three vertices of a triangle
 ;; CONSTRAINT: Triangle must be non-degenerate
 (define TRIANGLE1 (make-r3d-triangle (make-point 0 1 1)
                                      (make-point 1 0 1)
-                                     (make-point 0 0 1)
-                                     "black"))          ;triangles for a
-(define TRIANGLE2 (make-r3d-triangle (make-point 0 1 1) ;rectangular mesh
+                                     (make-point 0 0 1))) ;triangles for a
+(define TRIANGLE2 (make-r3d-triangle (make-point 0 1 1)   ;rectangular mesh
                                      (make-point 1 1 1)
-                                     (make-point 1 0 1)
-                                     "black"))
+                                     (make-point 1 0 1)))
 (define TRIANGLE3 (make-r3d-triangle (make-point -1 1 1)
                                      (make-point 1 1 2)
-                                     (make-point 0 0 3)
-                                     "red"))
+                                     (make-point 0 0 3)))
 
 (@dd-template-rules compound ;4 fields
                     ref      ;(r3d-triangle-v0 Triangle) is Point
@@ -116,5 +113,4 @@
 (define (fn-for-triangle t)
   (... (fn-for-point (r3d-triangle-v0 t)) 
        (fn-for-point (r3d-triangle-v1 t))
-       (fn-for-point (r3d-triangle-v2 t))
-       (r3d-triangle-colour t)))          ;Colour
+       (fn-for-point (r3d-triangle-v2 t))))

@@ -13,7 +13,12 @@
 ;;
 ;; OBJECT.rkt
 ;;
-;; Data types for representing general objects
+;; Data types for representing general objects, and functions operating on them
+;;
+
+
+;;
+;; DATA DEFINITIONS
 ;;
 
 
@@ -49,14 +54,16 @@
 
 
 (@htdd Icosphere)
-(define-struct icosphere (position rotation x-scale y-scale z-scale colour))
-;; Icosphere is (make-icosphere Point Euler Number Number Number Colour)
-;; interp. the position, orientation, x, y, z scales and colour of an icosphere
+(define-struct icosphere
+  (position rotation x-scale y-scale z-scale resolution colour))
+;; Icosphere is (make-icosphere Point Euler Number Number Number Number Colour)
+;; interp. the position, orientation, x, y, z scales, resolution and colour of
+;;         an icosphere; resolution determines the maximum allowable side length
 (define ICOSPHERE1 (make-icosphere ORIGIN ;sphere
                                    (make-euler 0 0 0)
                                    1 1 1 "black")) 
-(define ICOSPHERE2 (make-icosphere ORIGIN                ;rotated sphere is
-                                   (make-euler 23 37 79) ;nearly identical
+(define ICOSPHERE2 (make-icosphere ORIGIN                ;rotated (ico)sphere
+                                   (make-euler 23 37 79) ;is nearly identical
                                    1 1 1 "black")) 
 (define ICOSPHERE3 (make-icosphere (make-point 1 3 5)
                                    (make-euler 100 120 140)
@@ -79,41 +86,95 @@
 
 
 
-(@htdd Mesh)
-;; Mesh is one of:
+(@htdd VertexBuffer)
+;; VertexBuffer is one of:
 ;;  - empty
-;;  - (cons Triangle Mesh)
-;; interp. a mesh composed of triangular faces
-(define MESH1 empty)
-(define MESH2 (list (make-r3d-triangle (make-point 2 0 0) ;Tetrahedron example
-                                       (make-point -1 -1 (/ (sqrt 13) 2))
-                                       (make-point -1 -1 (/ (sqrt 13) -2))
-                                       "black")
-                    (make-r3d-triangle (make-point -1 2 0)
-                                       (make-point -1 -1 (/ (sqrt 13) 2))
-                                       (make-point -1 -1 (/ (sqrt 13) -2))
-                                       "black")
-                    (make-r3d-triangle (make-point 2 0 0)
-                                       (make-point -1 2 0)
-                                       (make-point -1 -1 (/ (sqrt 13) 2))
-                                       "black")
-                    (make-r3d-triangle (make-point 2 0 0)
-                                       (make-point -1 2 0)
-                                       (make-point -1 -1 (/ (sqrt 13) -2))
-                                       "black")))
+;;  - (cons Point VertexBuffer)
+;; interp. a list of unique vertices of a mesh, similar to a VBO in OpenGL
+;; CONSTRAINT: No duplicate vertices should be present in the list
+(define VBUF0 empty)
+(define VBUF1 (list (make-point 2 0 0)
+                    (make-point -1 2 0)
+                    (make-point -1 -1 (/ (sqrt 13) 2))
+                    (make-point -1 -1 (/ (sqrt 13) -2)))) ;tetrahedron example
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;empty
-                    compound        ;(cons Triangle Mesh)
-                    ref             ;(first Mesh) is Triangle
-                    self-ref)       ;(rest Mesh) is Mesh
+                    compound        ;(cons Point VertexBuffer)
+                    ref             ;(first VertexBuffer) is Point
+                    self-ref)       ;(rest VertexBuffer) is VertexBuffer
 
-(define (fn-for-mesh m)
-  (cond [(empty? m)
+(define (fn-for-vbuf vbuf)
+  (cond [(empty? vbuf)
          (...)]
         [else
-         (... (fn-for-triangle (first m))
-              (fn-for-mesh (rest m)))]))
+         (... (fn-for-point (first vbuf))
+              (fn-for-vbuf (rest vbuf)))]))
+
+
+
+(@htdd Element)
+(define-struct element (v0 v1 v2 colour))
+;; Element is (make-element Natural Natural Natural Colour)
+;; interp. the indices of the three vertices of a triangular mesh element
+;;         in a VertexBuffer, as well as the element's colour
+;; CONSTRAINT: No two vertices can be the same, and the resulting
+;;             triangular element must not be degenerate; v0, v1, v2 must
+;;             be less than the length of the corresponding VertexBuffer
+(define ELEMENT1 (make-element 0 1 2 "green"))
+(define ELEMENT2 (make-element 2 1 0 "black"))
+
+(@dd-template-rules compound) ;4 fields
+
+(define (fn-for-element e)
+  (... (element-v0 e)
+       (element-v1 e)
+       (element-v2 e)
+       (element-colour e)))
+
+
+
+(@htdd ElementBuffer)
+;; ElementBuffer is one of:
+;;  - empty
+;;  - (cons Element ElementBuffer)
+;; interp. a list of VertexBuffer indices of vertices of triangular elements
+;;         constituting a mesh, similar to an EBO in OpenGL
+(define EBUF0 empty)
+(define EBUF1 (list (make-element 0 1 2 "blue")
+                    (make-element 0 2 3 "blue")
+                    (make-element 0 3 1 "blue")
+                    (make-element 1 3 2 "blue")))
+
+(@dd-template-rules one-of          ;2 cases
+                    atomic-distinct ;empty
+                    compound        ;(cons Element ElementBuffer)
+                    ref             ;(first ElementBuffer) is Element
+                    self-ref)       ;(rest ElementBuffer) is ElementBuffer
+
+(define (fn-for-ebuf ebuf)
+  (cond [(empty? ebuf)
+         (...)]
+        [else
+         (... (fn-for-element (first ebuf))
+              (fn-for-ebuf (rest ebuf)))]))
+
+
+
+(@htdd Mesh)
+(define-struct mesh (vertices elements))
+;; Mesh is (make-mesh VertexBuffer ElementBuffer)
+;; interp. the unique vertices and triangular elements of a mesh
+(define MESH0 (make-mesh empty empty))
+(define MESH1 (make-mesh VBUF1 EBUF1))
+
+(@dd-template-rules compound ;2 cases
+                    ref      ;(mesh-vertices Mesh) is VertexBuffer
+                    ref)     ;(mesh-elements Mesh) is ElementBuffer
+
+(define (fn-for-mesh m)
+  (... (fn-for-vbuf (mesh-vertices m))
+       (fn-for-ebuf (mesh-elements m))))
 
 
 
@@ -125,10 +186,12 @@
 ;; interp. the position, orientation and size info of an object
 (define OBJECT1 CUBOID1)
 (define OBJECT2 ICOSPHERE1)
-(define OBJECT3 MESH2)
+(define OBJECT3 MESH1)
 
 (@dd-template-rules one-of   ;3 cases
+                    compound ;Cuboid
                     ref      ;Cuboid
+                    compound ;Icosphere
                     ref      ;Icosphere
                     compound ;Mesh
                     ref)     ;Mesh
@@ -163,3 +226,31 @@
         [else
          (... (fn-for-object (first loo))
               (fn-for-loo (rest loo)))]))
+
+
+;;
+;; FUNCTIONS
+;;
+
+
+(@htdf object->mesh)
+(@signature Object -> Mesh)
+;; produce mesh for rendering given object
+
+(@template-origin Object)
+
+(@template
+ (define (object->mesh o)
+   (cond [(cuboid? o)
+          (... (fn-for-cuboid o))]
+         [(icosphere? o)
+          (... (fn-for-icosphere o))]
+         [else
+          (... (fn-for-mesh o))])))
+
+(define (object->mesh o)
+  (cond [(cuboid? o)
+         (... (fn-for-cuboid o))]
+        [(icosphere? o)
+         (... (fn-for-icosphere o))]
+        [else o]))

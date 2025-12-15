@@ -181,25 +181,25 @@
 
 (@htdf projection-matrix)
 (@signature Number -> Matrix)
-;; produce projection matrix onto plane with given z-coordinate
+;; produce projection matrix onto plane z=1/r
 
 (@template-origin Number)
 
 (@template
- (define (projection-matrix z)
-   (... z)))
+ (define (projection-matrix r)
+   (... r)))
 
-(define (projection-matrix z)
+(define (projection-matrix r)
   (make-matrix 1 0 0 0
                0 1 0 0
                0 0 1 0
-               0 0 z 0))
+               0 0 r 0))
 
 
 
 (@htdf matrix-multiply)
 (@signature Matrix Matrix -> Matrix)
-;; produce product of two 4x4 matrices
+;; produce product of two 4x4 matrices, m0 * m1
 ;!!! examples
 
 (@template-origin Matrix)
@@ -329,4 +329,4 @@
 (@template-origin fn-composition)
 
 (define (transform m v)
-  (homogeneous->vector (transform m (vector->homogeneous v))))
+  (homogeneous->vector (transform-homogeneous m (vector->homogeneous v))))
