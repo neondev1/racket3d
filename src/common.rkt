@@ -10,7 +10,7 @@
 ;;
 ;; COMMON.rkt
 ;;
-;; Contains definitions of basic data types used throughout Racket3D.
+;; Basic data types used throughout Racket3D.
 ;;
 
 
