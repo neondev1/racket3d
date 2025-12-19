@@ -61,16 +61,16 @@
 ;;         an icosphere; resolution determines the maximum allowable side length
 (define ICOSPHERE1 (make-icosphere ORIGIN ;sphere
                                    (make-euler 0 0 0)
-                                   1 1 1 "black")) 
+                                   1 1 1 0.1 "black")) 
 (define ICOSPHERE2 (make-icosphere ORIGIN                ;rotated (ico)sphere
                                    (make-euler 23 37 79) ;is nearly identical
-                                   1 1 1 "black")) 
+                                   1 1 1 0.1 "black")) 
 (define ICOSPHERE3 (make-icosphere (make-point 1 3 5)
                                    (make-euler 100 120 140)
-                                   3 4 5 "black"))
+                                   3 4 5 0.1 "black"))
 (define ICOSPHERE4 (make-icosphere (make-point -1 -3 -5)
                                    (make-euler -100 -120 140)
-                                   -3 -4 -5 "red"))
+                                   -3 -4 -5 0.05 "red"))
 
 (@dd-template-rules compound ;6 fields
                     ref      ;(icosphere-position Icosphere) is Point

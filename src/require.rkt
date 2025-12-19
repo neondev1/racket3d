@@ -19,8 +19,11 @@
 (require "vector.rkt")
 (@htdd Vector Plane Line)
 
+(require "bst.rkt")
+(@htdd BST)
+
 (require "projection.rkt")
-(@htdd Element ElementBuffer)
+(@htdd Homogeneous Matrix)
 
 (require "object.rkt")
-(@htdd Cuboid Icosphere Mesh Object ListOfObject)
+(@htdd Cuboid Icosphere Mesh VertexBuffer Element ElementBuffer Object)
