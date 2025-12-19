@@ -21,10 +21,6 @@
 ;;
 
 
-(define VIEW-WIDTH  320)
-(define VIEW-HEIGHT 480)
-
-
 ;;
 ;; DATA DEFININTIONS
 ;;
@@ -69,23 +65,6 @@
        (matrix-m21 m) (matrix-m22 m) (matrix-m23 m) (matrix-m24 m)
        (matrix-m31 m) (matrix-m32 m) (matrix-m33 m) (matrix-m34 m)
        (matrix-m41 m) (matrix-m42 m) (matrix-m43 m) (matrix-m44 m)))
-
-
-
-(@htdd Pixel)
-(define-struct pixel (x y))
-;; Pixel is (make-pixel Number Number)
-;; interp. the screen coordinates of a pixel
-;; CONSTRAINT: x must be in [0, VIEW-WIDTH); y must be in [0, VIEW-HEIGHT)
-(define PIXEL0 (make-pixel 0 0))
-(define PIXEL1 (make-pixel (sub1 VIEW-WIDTH) (sub1 VIEW-HEIGHT)))
-(define PIXEL2 (make-pixel 100 120))
-
-(@dd-template-rules compound) ;2 fields
-
-(define (fn-for-pixel p)
-  (... (pixel-x p)
-       (pixel-y p)))
 
 
 ;;
