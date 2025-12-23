@@ -32,10 +32,10 @@
 ;;             all keys in right must be greater than key;
 ;;             all keys must be unique
 (define BST0 false)
-(define BST1 (make-node 4 ZERO-VECTOR
-                        (make-node 2 VECTOR1
-                                   (make-node 1 VECTOR2 false false)
-                                   (make-node 3 VECTOR3 false false))
+(define BST1 (make-node 3 ZERO-VECTOR
+                        (make-node 1 VECTOR1
+                                   (make-node 0 VECTOR2 false false)
+                                   (make-node 2 VECTOR3 false false))
                         false))
 
 (@dd-template-rules one-of          ;2 cases
@@ -60,6 +60,37 @@
 ;;
 
 
+(@htdf lookup)
+(@signature Natural BST -> Vector or false)
+;; produce value of node in tree with given key, or false if it does not exist
+;!!! examples
+
+(@template-origin BST)
+
+(@template
+ (define (lookup key node)
+   (cond [(false? node)
+          (... key)]
+         [else
+          (... key
+               (node-key node)
+               (node-value node)
+               (lookup key (node-left node))
+               (lookup key (node-right node)))])))
+
+(define (lookup key node)
+  (cond [(false? node)
+         false]
+        [else
+         (cond [(= key (node-key node))
+                (node-value node)]
+               [(< key (node-key node))
+                (lookup key (node-left node))]
+               [else
+                (lookup key (node-right node))])]))
+
+
+
 (@htdf construct-bst construct-bst--acc)
 (@signature (listof Vector) -> BST)
 ;; construct binary search tree from given list of vectors
@@ -77,113 +108,140 @@
 (define (construct-bst lov)
   (cond [(empty? lov)
          false]
-        [(empty? (rest lov))
-         (make-node 0 (first lov) false false)]
         [else
-         (construct-bst--acc (rest (rest lov))
-                             (rest (rest (bst-pattern (length lov))))
-                             1 1 2 (list 1)
-                             empty
-                             (list (make-node 1 (second lov)
-                                              (make-node 0 (first lov)
-                                                         false false)
-                                              false)))]))
+         (construct-bst--acc (rest lov)
+                             (rest (bst-pattern (length lov))) 0
+                             empty 1 empty
+                             (make-node 0 (first lov) false false)
+                             empty)]))
 
 (@template-origin (listof Vector) accumulator)
 
 (@template
- (define (construct-bst--acc lov depths last-depth eff-depth
+ (define (construct-bst--acc lov depths last-depth working-depths
                              index fold-counts perfect imperfect)
    (cond [(empty? lov)
-          (... depths last-depth eff-depth index fold-counts perfect imperfect)]
+          (... depths last-depth working-depths
+               index fold-counts perfect imperfect)]
          [else
           (... (fn-for-vector (first lov))
-               depths last-depth eff-depth index fold-counts perfect imperfect
+               depths last-depth working-depths
+               index fold-counts perfect imperfect
                (construct-bst--acc (rest lov) (... depths)
                                    (... last-depth) (... eff-depth)
                                    (... index) (... fold-counts)
                                    (... perfect) (... imperfect)))])))
 
-;; !!! invariants
-(define (construct-bst--acc lov depths last-depth eff-depth
+;; depths is (listof Natural)
+;; INVARIANT: the depth of every node to be created from the corresponding
+;;            element in lov; 0 is deepest and greater values are less deep
+;; last-depth is Natural
+;; INVARIANT: the depth of the last element of lov seen
+;; working-depths is (listof Natural)
+;; INVARIANT: the maximum node depth of every BST in imperfect
+;; index is Natural
+;; INVARIANT: the zero-based index of the current element of lov
+;; fold-counts is (listof Natural)
+;; INVARIANT: the sequence of numbers of fold operations required to construct
+;;            a complete binary search tree from perfect and trees in imperfect
+;; perfect is BST
+;; INVARIANT: the last perfect binary search tree constructed that has not
+;;            been added to a larger tree; false if it does not exist
+;; imperfect is (listof BST)
+;; INVARIANT: the list of all imperfect binary search trees constructed,
+;;            in reverse chronological order
+(define (construct-bst--acc lov depths last-depth working-depths
                             index fold-counts perfect imperfect)
   (cond [(empty? lov)
          (if (empty? imperfect)
              perfect
              (fold perfect imperfect
                    (first (reverse fold-counts))))]
-        [(zero? (first depths))
-         (if (= last-depth 1)
-             (construct-bst--acc (rest lov) (rest depths) 0 eff-depth
-                                 (add1 index) (rest fold-counts)
-                                 (fold (make-node index (first lov) false false)
-                                       imperfect (first fold-counts))
-                                 (trim imperfect (first fold-counts)))
-             (construct-bst--acc (rest lov) (rest depths) 0 eff-depth
-                                 (add1 index) fold-counts
-                                 (make-node index (first lov) false false)
-                                 imperfect))]
-        [(= (first depths) (sub1 eff-depth))
-         (construct-bst--acc (rest lov) (rest depths)
-                             (first depths) (first depths)
-                             (add1 index) fold-counts
-                             false
-                             (cons (make-node index (first lov) perfect false)
-                                   imperfect))]
-        [(> (first depths) eff-depth)
-         (construct-bst--acc (rest lov) (rest depths)
-                             (first depths) (first depths)
-                             (add1 index) (cons (first depths) fold-counts)
-                             false
-                             (cons (make-node index (first lov) perfect false)
-                                   imperfect))]
         [else
-         (construct-bst--acc (rest lov) (rest depths)
-                             (first depths) eff-depth
-                             (add1 index) (cons (first depths) fold-counts)
-                             false
-                             (cons (make-node index (first lov) perfect false)
-                                   imperfect))]))
+         (cond [(zero? (first depths))
+                (if (= last-depth 1)
+                    (construct-bst--acc (rest lov) (rest depths) 0
+                                        (trim working-depths
+                                              (first fold-counts))
+                                        (add1 index) (rest fold-counts)
+                                        (fold (make-node index (first lov)
+                                                         false false)
+                                              imperfect (first fold-counts))
+                                        (trim imperfect (first fold-counts)))
+                    (construct-bst--acc (rest lov) (rest depths) 0
+                                        working-depths
+                                        (add1 index) fold-counts
+                                        (make-node index (first lov)
+                                                   false false)
+                                        imperfect))]
+               [(or (empty? imperfect)
+                    (not (= (first depths) (sub1 (first working-depths)))))
+                (construct-bst--acc (rest lov) (rest depths) (first depths)
+                                    (cons (first depths) working-depths)
+                                    (add1 index) (cons (first depths)
+                                                       fold-counts)
+                                    false
+                                    (cons (make-node index (first lov)
+                                                     perfect false)
+                                          imperfect))]
+               [else
+                (construct-bst--acc (rest lov) (rest depths) (first depths)
+                                    (cons (first depths) working-depths)
+                                    (add1 index) fold-counts
+                                    false
+                                    (cons (make-node index (first lov)
+                                                     perfect false)
+                                          imperfect))])]))
 
 
 
 (@htdf fold)
 (@signature (listof BST) (listof BST) Natural -> (listof BST))
-;; recursively attach perfect to (first imperfect) until count = 0 or list empty
+;; recursively attach perfect to (first imperfect) until empty or count is 0
 ;!!!
 
-;(define (fold perfect imperfect count) empty) ;stub
+;(define (fold perfect imperfect depths) empty) ;stub
 
 (@template-origin 2-one-of accumulator)
 
 (@template
  (define (fold perfect imperfect count)
-   (cond [(or (zero? count) (empty? imperfect))
+   (cond [(and (zero? count) (empty? imperfect))
+          (... perfect)]
+         [(zero? count)
+          (... perfect)]
+         [(empty? imperfect)
           (... perfect)]
          [else
           (... perfect (first imperfect) count
-               (fold (... perfect)
-                     (rest imperfect)
-                     (sub1 count)))])))
+               (fold--acc (... perfect)
+                          (rest imperfect) (sub1 count)))])))
 
 #|
-!!!
+             count    0              (add1 Natural)
+imperfect
+
+empty                 perfect [0]    perfect [0]
+
+(cons BST             perfect [0]    (fold (set-right (first imperfect) perfect)
+      (listof BST))                        (rest imperfect) (sub1 count)) [1]
 |#
 
-;; !!! invariants
+;; perfect is BST
+;; INVARIANT: the last perfect binary search tree constructed
 (define (fold perfect imperfect count)
   (cond [(or (zero? count) (empty? imperfect)) ;[0]
          perfect]
         [else                                  ;[1]
          (fold (set-right (first imperfect) perfect)
-               (rest imperfect)
-               (sub1 count))]))
+               (rest imperfect) (sub1 count))]))
 
 
 
 (@htdf set-right)
 (@signature BST BST -> BST)
 ;; produce first BST with right child set to second BST
+;; CONSTRAINT: first BST must be nonempty
 ;!!!
 
 ;(define (set-right bst right) false) ;stub
@@ -192,17 +250,23 @@
 
 (@template
  (define (set-right bst right)
-   (... (node-key bst)
-        (node-value bst)
-        (node-left bst)
-        (node-right bst)
-        right)))
+   (cond [(false? bst)
+          (...)]
+         [else
+          (... (node-key bst)
+               (node-value bst)
+               (fn-for-bst (node-left bst))
+               (fn-for-bst (node-right bst))
+               right)])))
 
 (define (set-right bst right)
-  (make-node (node-key bst)
-             (node-value bst)
-             (node-left bst)
-             right))
+  (cond [(false? bst)
+         (error "First BST must be nonempty")]
+        [else
+         (make-node (node-key bst)
+                    (node-value bst)
+                    (node-left bst)
+                    right)]))
 
 
 
@@ -331,6 +395,8 @@
 (check-expect (log2 4294967296) 32)
 (check-within (log2 10000) 13.28771237954945 APPROX)
 
+;(define (log2 x) 0) ;stub
+
 (@template-origin Number)
 
 (@template
@@ -339,3 +405,10 @@
 
 (define (log2 x)
   (inexact->exact (/ (log x) (log 2))))
+
+
+;;
+;; TESTING FUNCTIONS
+;;
+
+;!!! perhaps add a slower conventional BST building function for testing
