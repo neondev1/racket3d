@@ -14,7 +14,7 @@ Polygon culling may be added in the future to improve performance.
 ## Major deviations
 - A single Racket (non-BSL) file that exports `provide` is used to allow for splitting the project into multiple files.
 - As `provide` cannot export `@htdd` tags, any tags from data definitions in `require`d files are placed directly below the line containing the `require`.
-- As `local` is not available in BSL, inner functions with accumulators are defined at the top level with the suffix `--acc`.
+- As `local` is not available in BSL, inner functions with accumulators are defined at the top level with the suffix `--acc` as needed.
   The `@template-origin` of the outer function is simply listed as `(@template-origin accumulator)`.
 - `@template`s are not included for `fn-composition` as they are effectively redundant.
 
