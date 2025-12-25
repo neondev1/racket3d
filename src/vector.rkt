@@ -146,6 +146,30 @@
 
 
 
+(@htdf negate)
+(@signature Vector -> Vector)
+;; produce vector of equal magnitude and opposite direction
+(check-expect (negate ZERO-VECTOR) ZERO-VECTOR)
+(check-expect (negate (make-vector 1 2 3)) (make-vector -1 -2 -3))
+(check-expect (negate (make-vector 1.2 3.4 -5.6)) (make-vector -1.2 -3.4 5.6))
+
+;(define (negate v) ZERO-VECTOR) ;stub
+
+(@template-origin Vector)
+
+(@template
+ (define (negate v)
+   (... (vector-x v)
+        (vector-y v)
+        (vector-z v))))
+
+(define (negate v)
+  (make-vector (- (vector-x v))
+               (- (vector-y v))
+               (- (vector-z v))))
+
+
+
 (@htdf scalar-multiply)
 (@signature Vector Number -> Vector)
 ;; produce vector multiplied by a scalar
@@ -370,13 +394,11 @@
 ;; produce a vector normal to given triangle with unspecified magnitude
 (check-expect (normal (make-r3d-triangle (make-point 0 0 0)
                                          (make-point 2 0 0)
-                                         (make-point 0 2 0)
-                                         "black"))
+                                         (make-point 0 2 0)))
               (make-vector 0 0 4))
 (check-expect (normal (make-r3d-triangle (make-point 0 0 0)
                                          (make-point 0 2 0)
-                                         (make-point 2 0 0)
-                                         "black"))
+                                         (make-point 2 0 0)))
               (make-vector 0 0 -4))
 
 ;(define (normal t) ZERO-VECTOR) ;stub
@@ -456,8 +478,7 @@
 ;; produce Cartesian form of plane containing triangle
 (check-expect (triangle->plane (make-r3d-triangle (make-point 0 0 0)
                                                   (make-point 2 0 0)
-                                                  (make-point 0 2 0)
-                                                  "black"))
+                                                  (make-point 0 2 0)))
               (make-r3d-plane 0 0 4 0))
 ;!!! more examples
 
@@ -784,4 +805,3 @@ element as follows:
    6a. If possible, skip checks for all polygons that have been checked before.
 
 |#
-

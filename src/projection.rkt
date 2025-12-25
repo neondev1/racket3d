@@ -241,18 +241,20 @@
    (... yaw pitch roll)))
 
 (define (rotation-matrix yaw pitch roll)
-  (matrix-multiply (make-matrix 1  0          0              0
-                                0  (cos roll) (- (sin roll)) 0
-                                0  (sin roll) (cos roll)     0
-                                0  0          0              1)   ;finally roll
-                   (make-matrix (cos pitch)     0  (sin pitch) 0
-                                0               1  0           0
-                                (- (sin pitch)) 0  (cos pitch) 0
-                                0               0  0           1) ;then pitch
-                   (make-matrix (cos yaw) (- (sin yaw)) 0  0
-                                (sin yaw) (cos yaw)     0  0
-                                0         0             1  0
-                                0         0             0  1)))   ;yaw first
+  (matrix-multiply
+   (matrix-multiply
+    (make-matrix 1  0          0              0
+                 0  (cos roll) (- (sin roll)) 0
+                 0  (sin roll) (cos roll)     0
+                 0  0          0              1)    ;finally roll
+    (make-matrix (cos pitch)     0  (sin pitch) 0
+                 0               1  0           0
+                 (- (sin pitch)) 0  (cos pitch) 0
+                 0               0  0           1)) ;then pitch
+   (make-matrix (cos yaw) (- (sin yaw)) 0  0
+                (sin yaw) (cos yaw)     0  0
+                0         0             1  0
+                0         0             0  1)))     ;yaw first
 
 
 
