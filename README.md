@@ -2,7 +2,7 @@
 3D rendering engine written in BSL (Racket) with [SPD](https://github.com/GregorKiczales/spd) tags and style rules.
 
 ## Technical information
-Racket3D uses a [right-handed coordinate system](https://en.wikipedia.org/wiki/Right-handed_coordinate_system).
+Racket3D uses a [right-handed coordinate system](https://en.wikipedia.org/wiki/Right-handed_coordinate_system) with a vertical *y*-axis.
 
 Rendering is performed on a per-polygon basis, since per-fragment rendering was deemed to be too inefficient for a software-based renderer (especially with Racket).
 Due to this, traditional depth testing is not possible. Thus, Racket3D has a render queue, and every insertion checks for intersections between polygons.
