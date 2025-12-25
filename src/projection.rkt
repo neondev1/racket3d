@@ -16,9 +16,13 @@
 ;;
 ;; PROJECTION.rkt
 ;;
-;; Data definitions and functions for render queuing
-;; and projecting 3D meshes to screen coordinates
+;; Data definitions and functions for matrix arithmetic
+;; and projection of 3D meshes to screen coordinates
 ;;
+
+
+(define VIEW-WIDTH  480)
+(define VIEW-HEIGHT 480)
 
 
 ;;
@@ -26,10 +30,31 @@
 ;;
 
 
+(@htdd Spherical)
+(define-struct spherical (r pitch yaw))
+;; Spherical is (make-spherical Number Number Number)
+;; interp. spherical coordinates for camera position, with angles in degrees;
+;;         note that the definition used by Racket3D is atypical.
+;;         pitch is the angle of the position vector from the xz-plane,
+;;         with elevation being positive and depression being negative, while
+;;         yaw is the (counterclockwise) azimuthal angle measured from
+;;         the positive x-axis. This convention is due to the vertical y-axis.
+;; CONSTRAINT: r must be positive and pitch must be in [-90, 90]
+;!!! examples
+
+(@dd-template-rules compound) ;3 fields
+
+(define (fn-for-spherical s)
+  (... (spherical-r s)
+       (spherical-pitch s)
+       (spherical-yaw s)))
+
+
+
 (@htdd Homogeneous)
 (define-struct homogeneous (x y z w))
 ;; Homogeneous is (make-homo Number Number Number Number)
-;; interp. homogeneous coordinates
+;; interp. homogeneous coordinates for matrix transformations
 (define HOMO0 (make-homogeneous 0 0 0 1))
 (define HOMO1 (make-homogeneous (point-x POINT1)
                                 (point-y POINT1)
@@ -57,6 +82,10 @@
                               0 1 0 0
                               0 0 1 0
                               0 0 0 1))
+(define MATRIX1 (make-matrix 2 1 0 0
+                             0 2 0 0
+                             0 0 4 1
+                             0 0 0 4))
 
 (@dd-template-rules compound) ;16 fields
 
@@ -70,6 +99,69 @@
 ;;
 ;; FUNCTIONS
 ;;
+
+
+(@htdf camera-matrix)
+(@signature Spherical -> Matrix)
+;; produce 3D projection matrix from coordinates of camera
+;!!! examples
+
+;(define (camera-matrix s) IDENTITY) ;stub
+
+(@template-origin Spherical)
+
+(@template
+ (define (camera-matrix s)
+   (... (spherical-r s)
+        (spherical-pitch s)
+        (spherical-yaw s))))
+
+(define (camera-matrix s)
+  (matrix-multiply
+   (projection-matrix (/ 2 VIEW-HEIGHT))
+   (matrix-multiply (rotation-matrix (spherical-yaw s)
+                                     (spherical-pitch s) 0)
+                    (translation-matrix (negate (spherical->vector s))))))
+
+
+
+(@htdf spherical->vector)
+(@signature Spherical -> Vector)
+;; convert spherical coordinates into a position vector
+;!!! examples
+
+;(define (spherical->vector s) ZERO-VECTOR) ;stub
+
+(@template-origin Spherical)
+
+(@template
+ (define (spherical->vector s)
+   (... (spherical-r s)
+        (spherical-pitch s)
+        (spherical-yaw s))))
+
+(define (spherical->vector s)
+  (make-vector (* (spherical-r s)
+                  (cos (spherical-pitch s))
+                  (cos (spherical-yaw s)))
+               (* (spherical-r s)
+                  (sin (spherical-pitch s)))
+               (* (spherical-r s)
+                  (cos (spherical-pitch s))
+                  (sin (spherical-yaw s)))))
+
+
+
+(@htdf transform)
+(@signature Matrix Vector -> Vector)
+;; apply transformation matrix to vector
+;!!! examples
+
+(@template-origin fn-composition)
+
+(define (transform m v)
+  (homogeneous->vector (transform-homogeneous m (vector->homogeneous v))))
+
 
 
 (@htdf vector->homogeneous)
@@ -110,9 +202,11 @@
 
 
 (define (homogeneous->vector h)
-  (make-vector (/ (homogeneous-x h) (homogeneous-w h))
-               (/ (homogeneous-y h) (homogeneous-w h))
-               (homogeneous-z h))) ;leave z untouched, yes I know this is cursed
+  (if (zero? (homogeneous-w h))
+      ZERO-VECTOR
+      (make-vector (/ (homogeneous-x h) (homogeneous-w h))
+                   (/ (homogeneous-y h) (homogeneous-w h))
+                   (homogeneous-z h)))) ;leave z untouched (yes this is cursed)
 
 
 
@@ -138,16 +232,20 @@
 
 (@htdf rotation-matrix)
 (@signature Number Number -> Matrix)
-;; produce rotation matrix from given pitch and yaw
+;; produce rotation matrix from given yaw, pitch and roll
 
 (@template-origin Number)
 
 (@template
- (define (rotation-matrix pitch yaw)
-   (... pitch yaw)))
+ (define (rotation-matrix yaw pitch roll)
+   (... yaw pitch roll)))
 
-(define (rotation-matrix pitch yaw)
-  (matrix-multiply (make-matrix (cos pitch)     0  (sin pitch) 0
+(define (rotation-matrix yaw pitch roll)
+  (matrix-multiply (make-matrix 1  0          0              0
+                                0  (cos roll) (- (sin roll)) 0
+                                0  (sin roll) (cos roll)     0
+                                0  0          0              1)   ;finally roll
+                   (make-matrix (cos pitch)     0  (sin pitch) 0
                                 0               1  0           0
                                 (- (sin pitch)) 0  (cos pitch) 0
                                 0               0  0           1) ;then pitch
@@ -161,6 +259,7 @@
 (@htdf projection-matrix)
 (@signature Number -> Matrix)
 ;; produce projection matrix onto plane z=1/r
+;!!! examples
 
 (@template-origin Number)
 
@@ -297,15 +396,3 @@
                        (* (matrix-m42 m) (homogeneous-y h))
                        (* (matrix-m43 m) (homogeneous-z h))
                        (* (matrix-m44 m) (homogeneous-w h)))))
-
-
-
-(@htdf transform)
-(@signature Matrix Vector -> Vector)
-;; apply transformation matrix to vector
-;!!! examples
-
-(@template-origin fn-composition)
-
-(define (transform m v)
-  (homogeneous->vector (transform-homogeneous m (vector->homogeneous v))))

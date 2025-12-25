@@ -292,8 +292,8 @@ empty                 perfect [0]    perfect [0]
 (@htdf depth->bst-pattern depth->bst-pattern--acc)
 (@signature Natural -> (listof Natural))
 ;; produce list of BST node depths for a BST with given depth, trimmed to count
-(check-expect (depth->bst-pattern 1 1) (list 0))
-(check-expect (depth->bst-pattern 2 3) (list 0 1 0))
+(check-expect (depth->bst-pattern 1 1)  (list 0))
+(check-expect (depth->bst-pattern 2 3)  (list 0 1 0))
 (check-expect (depth->bst-pattern 4 10) (list 0 1 0 2 0 1 0 3 0 1))
 (check-expect (depth->bst-pattern 4 15) (list 0 1 0 2 0 1 0 3 0 1 0 2 0 1 0))
 
@@ -405,10 +405,3 @@ empty                 perfect [0]    perfect [0]
 
 (define (log2 x)
   (inexact->exact (/ (log x) (log 2))))
-
-
-;;
-;; TESTING FUNCTIONS
-;;
-
-;!!! perhaps add a slower conventional BST building function for testing

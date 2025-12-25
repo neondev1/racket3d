@@ -75,7 +75,7 @@
 (@htdd Euler)
 (define-struct euler (alpha beta gamma))
 ;; Euler is (make-euler Number Number Number)
-;; interp. the Euler angles representing an orientation
+;; interp. the Euler angles, in degrees, representing an orientation
 (define EULER1 (make-euler 0 0 0))
 (define EULER2 (make-euler 60 90 180))
 (define EULER3 (make-euler 12.3 45.6 78.9))
