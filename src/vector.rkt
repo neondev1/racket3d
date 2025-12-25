@@ -146,30 +146,6 @@
 
 
 
-(@htdf negate)
-(@signature Vector -> Vector)
-;; produce vector of equal magnitude and opposite direction
-(check-expect (negate ZERO-VECTOR) ZERO-VECTOR)
-(check-expect (negate (make-vector 1 2 3)) (make-vector -1 -2 -3))
-(check-expect (negate (make-vector 1.2 3.4 -5.6)) (make-vector -1.2 -3.4 5.6))
-
-;(define (negate v) ZERO-VECTOR) ;stub
-
-(@template-origin Vector)
-
-(@template
- (define (negate v)
-   (... (vector-x v)
-        (vector-y v)
-        (vector-z v))))
-
-(define (negate v)
-  (make-vector (- (vector-x v))
-               (- (vector-y v))
-               (- (vector-z v))))
-
-
-
 (@htdf scalar-multiply)
 (@signature Vector Number -> Vector)
 ;; produce vector multiplied by a scalar
@@ -394,11 +370,13 @@
 ;; produce a vector normal to given triangle with unspecified magnitude
 (check-expect (normal (make-r3d-triangle (make-point 0 0 0)
                                          (make-point 2 0 0)
-                                         (make-point 0 2 0)))
+                                         (make-point 0 2 0)
+                                         "black"))
               (make-vector 0 0 4))
 (check-expect (normal (make-r3d-triangle (make-point 0 0 0)
                                          (make-point 0 2 0)
-                                         (make-point 2 0 0)))
+                                         (make-point 2 0 0)
+                                         "black"))
               (make-vector 0 0 -4))
 
 ;(define (normal t) ZERO-VECTOR) ;stub
@@ -444,3 +422,366 @@
 (define (vector-angle v0 v1)
   (acos (/ (dot-product v0 v1)
            (* (vector-magnitude v0) (vector-magnitude v1)))))
+
+
+
+(@htdf normal->plane)
+(@signature Vector Vector -> Plane)
+;; produce Cartesian form of plane given normal and a position vector on plane
+;!!! examples
+
+;(define (normal->plane n p) PLANE-XY) ;stub
+
+(@template-origin Vector)
+
+(@template
+ (define (normal->plane n p)
+   (... (vector-x n)
+        (vector-y n)
+        (vector-z n)
+        (vector-x p)
+        (vector-y p)
+        (vector-z p))))
+
+(define (normal->plane n p)
+  (make-r3d-plane (vector-x n)
+                  (vector-y n)
+                  (vector-z n)
+                  (dot-product n p)))
+
+
+
+(@htdf triangle->plane)
+(@signature Triangle -> Plane)
+;; produce Cartesian form of plane containing triangle
+(check-expect (triangle->plane (make-r3d-triangle (make-point 0 0 0)
+                                                  (make-point 2 0 0)
+                                                  (make-point 0 2 0)
+                                                  "black"))
+              (make-r3d-plane 0 0 4 0))
+;!!! more examples
+
+;(define (triangle->plane t) PLANE-XY) ;stub
+
+(@template-origin fn-composition)
+
+(@template
+ (define (triangle->plane t)
+   (normal->plane (normal t) (point->vector (r3d-triangle-v0 t)))))
+
+(define (triangle->plane t)
+  (normal->plane (normal t) (point->vector (r3d-triangle-v0 t))))
+
+
+
+(@htdf plane-parallel?)
+(@signature Plane Plane -> Boolean)
+;; produce true if given planes are parallel, otherwise false
+(check-expect (plane-parallel? (make-r3d-plane 0 2 3 9)
+                               (make-r3d-plane -1 4 2 7)) false)
+(check-expect (plane-parallel? (make-r3d-plane 1 -2 4 5)
+                               (make-r3d-plane 1 -2 4 9)) true)
+(check-expect (plane-parallel? (make-r3d-plane 2 3 4 -5)
+                               (make-r3d-plane 2 3 4 -5)) true)
+(check-expect (plane-parallel? (make-r3d-plane 1 -4 5 7)
+                               (make-r3d-plane 1 -4 -5 7)) false)
+
+;(define (plane-parallel? p0 p1) false) ;stub
+
+(@template-origin Plane)
+
+(@template
+ (define (plane-parallel? p0 p1)
+   (... (r3d-plane-a p0)
+        (r3d-plane-b p0)
+        (r3d-plane-c p0)
+        (r3d-plane-d p0)
+        (r3d-plane-a p1)
+        (r3d-plane-b p1)
+        (r3d-plane-c p1)
+        (r3d-plane-d p1))))
+
+(define (plane-parallel? p0 p1)
+  (= (/ (r3d-plane-a p0) (r3d-plane-a p1))
+     (/ (r3d-plane-b p0) (r3d-plane-b p1))
+     (/ (r3d-plane-c p0) (r3d-plane-c p1))))
+
+
+
+(@htdf plane-intersect)
+(@signature Plane Plane -> Line)
+;; produce parametric line of intersection between two planes
+;; CONSTRAINT: planes must be nonparallel
+(check-expect (plane-intersect PLANE1 PLANE2)
+              (make-r3d-line (make-vector 0 -1 0)
+                             (make-vector -1/3 -5/3 1)))
+
+;(define (plane-intersect p0 p1) LINE-X) ;stub
+
+(@template-origin fn-composition)
+
+(define (plane-intersect p0 p1)
+  (intersect-other p0 p1 (intersect-first p0 p1 (intersect-denominator p0 p1))))
+
+
+;; NOTE: The following functions exist to reduce recomputation;
+;;       local is not used here as we are sticking to strict BSL.
+
+
+(@htdf intersect-first)
+(@signature Plane Plane Number Number -> Line)
+;; produce first component of incomplete line of intersection between two planes
+;!!! examples
+
+;(define (intersect-first p0 p1 d) LINE-X) ;stub
+
+(@template-origin Plane)
+
+(@template
+ (define (intersect-first p0 p1 d)
+   (... (r3d-plane-a p0)
+        (r3d-plane-b p0)
+        (r3d-plane-c p0)
+        (r3d-plane-d p0)
+        (r3d-plane-a p1)
+        (r3d-plane-b p1)
+        (r3d-plane-c p1)
+        (r3d-plane-d p1)
+        d)))
+
+(define (intersect-first p0 p1 d)
+  (cond [(not (zero? d))
+         (make-r3d-line
+          (make-vector (/ (- (* (r3d-plane-d p0) (r3d-plane-b p1))
+                             (* (r3d-plane-d p1) (r3d-plane-b p0))) d)
+                       0 #i0)
+          (make-vector (/ (- (* (r3d-plane-b p0) (r3d-plane-c p1))
+                             (* (r3d-plane-b p1) (r3d-plane-c p0))) d)
+                       0 #i1))]
+        [(not (zero? (- (* (r3d-plane-a p0) (r3d-plane-c p1))
+                        (* (r3d-plane-a p1) (r3d-plane-c p0)))))
+         (make-r3d-line
+          (make-vector (/ (- (* (r3d-plane-d p0) (r3d-plane-c p1))
+                             (* (r3d-plane-d p1) (r3d-plane-c p0)))
+                          (- (* (r3d-plane-a p0) (r3d-plane-c p1))
+                             (* (r3d-plane-a p1) (r3d-plane-c p0))))
+                       #i0 0)
+          (make-vector (/ (- (* (r3d-plane-c p0) (r3d-plane-b p1))
+                             (* (r3d-plane-c p1) (r3d-plane-b p0)))
+                          (- (* (r3d-plane-a p0) (r3d-plane-c p1))
+                             (* (r3d-plane-a p1) (r3d-plane-c p0))))
+                       #i1 0))]
+        [else
+         (make-r3d-line
+          (make-vector #i0 0
+                       (/ (- (* (r3d-plane-d p0) (r3d-plane-b p1))
+                             (* (r3d-plane-d p1) (r3d-plane-b p0)))
+                          (- (* (r3d-plane-c p0) (r3d-plane-b p1))
+                             (* (r3d-plane-c p1) (r3d-plane-b p0)))))
+          (make-vector #i1 0
+                       (/ (- (* (r3d-plane-b p0) (r3d-plane-a p1))
+                             (* (r3d-plane-b p1) (r3d-plane-a p0)))
+                          (- (* (r3d-plane-c p0) (r3d-plane-b p1))
+                             (* (r3d-plane-c p1) (r3d-plane-b p0))))))]))
+
+
+
+(@htdf intersect-denominator)
+(@signature Plane Plane -> Number)
+;; produce denominator of x component of line of intersection of given planes
+;!!! examples
+
+(@template-origin Plane)
+
+(@template
+ (define (intersect-denominator p0 p1)
+   (... (r3d-plane-a p0)
+        (r3d-plane-b p0)
+        (r3d-plane-c p0)
+        (r3d-plane-d p0)
+        (r3d-plane-a p1)
+        (r3d-plane-b p1)
+        (r3d-plane-c p1)
+        (r3d-plane-d p1))))
+
+(define (intersect-denominator p0 p1)
+  (- (* (r3d-plane-a p0) (r3d-plane-b p1))
+     (* (r3d-plane-a p1) (r3d-plane-b p0))))
+
+
+
+(@htdf intersect-other)
+(@signature Plane Plane Line -> Line)
+;; produce other component of line of intersection from component and one plane
+;!!! examples
+
+;(define (intersect-other p0 p1 l) LINE-X) ;stub
+
+(@template-origin Line)
+
+(@template
+ (define (intersect-other p0 p1 l)
+   (... p0 p1
+        (fn-for-vector (r3d-line-position l))
+        (fn-for-vector (r3d-line-direction l)))))
+
+(define (intersect-other p0 p1 l)
+  (make-r3d-line (intersect-position p0 p1 (r3d-line-position l))
+                 (intersect-direction p0 p1 (r3d-line-direction l))))
+
+
+
+(@htdf intersect-position)
+(@signature Plane Plane Vector -> Vector)
+;; produce position vector of other component of line of intersection
+;!!! examples
+
+;(define (intersect-position p0 p1 pos) ZERO-VECTOR) ;stub
+
+(@template-origin Plane Vector)
+
+(@template
+ (define (intersect-position p0 p1 pos)
+   (... (r3d-plane-a p0)
+        (r3d-plane-b p0)
+        (r3d-plane-c p0)
+        (r3d-plane-d p0)
+        (r3d-plane-a p1)
+        (r3d-plane-b p1)
+        (r3d-plane-c p1)
+        (r3d-plane-d p1)
+        (vector-x pos)
+        (vector-y pos)
+        (vector-z pos))))
+
+(define (intersect-position p0 p1 pos)
+  (cond [(inexact? (vector-z pos))
+         (if (zero? (r3d-plane-b p1))
+             (make-vector (vector-x pos)
+                          (/ (- (r3d-plane-d p0)
+                                (* (r3d-plane-a p0) (vector-x pos)))
+                             (r3d-plane-b p0))
+                          0)
+             (make-vector (vector-x pos)
+                          (/ (- (r3d-plane-d p1)
+                                (* (r3d-plane-a p1) (vector-x pos)))
+                             (r3d-plane-b p1))
+                          0))]
+        [(inexact? (vector-y pos))
+         (if (zero? (r3d-plane-b p1))
+             (make-vector (vector-x pos)
+                          0
+                          (/ (- (r3d-plane-d p0)
+                                (* (r3d-plane-a p0) (vector-x pos)))
+                             (r3d-plane-c p0)))
+             (make-vector (vector-x pos)
+                          0
+                          (/ (- (r3d-plane-d p1)
+                                (* (r3d-plane-a p1) (vector-x pos)))
+                             (r3d-plane-c p1))))]
+        [else
+         (if (zero? (r3d-plane-b p1))
+             (make-vector 0
+                          (/ (- (r3d-plane-d p0)
+                                (* (r3d-plane-c p0) (vector-z pos)))
+                             (r3d-plane-b p0))
+                          (vector-z pos))
+             (make-vector 0
+                          (/ (- (r3d-plane-d p1)
+                                (* (r3d-plane-c p1) (vector-z pos)))
+                             (r3d-plane-b p1))
+                          (vector-z pos)))]))
+
+
+
+(@htdf intersect-direction)
+(@signature Plane Vector -> Vector)
+;; produce direction vector of other component of line of intersection
+;!!! examples
+
+;(define (intersect-direction p dir) dir) ;stub
+;                                         ;note that direction vector is nonzero
+
+(@template-origin Plane Vector)
+
+(@template
+ (define (intersect-direction p dir)
+   (... (r3d-plane-a p0)
+        (r3d-plane-b p0)
+        (r3d-plane-c p0)
+        (r3d-plane-d p0)
+        (r3d-plane-a p1)
+        (r3d-plane-b p1)
+        (r3d-plane-c p1)
+        (r3d-plane-d p1)
+        (vector-x dir)
+        (vector-y dir)
+        (vector-z dir))))
+
+(define (intersect-direction p0 p1 dir)
+  (cond [(inexact? (vector-z dir))
+         (if (zero? (r3d-plane-b p1))
+             (make-vector (vector-x dir)
+                          (/ (- (- (r3d-plane-c p0))
+                                (* (r3d-plane-a p0) (vector-x dir)))
+                             (r3d-plane-b p0))
+                          1)
+             (make-vector (vector-x dir)
+                          (/ (- (- (r3d-plane-c p1))
+                                (* (r3d-plane-a p1) (vector-x dir)))
+                             (r3d-plane-b p1))
+                          1))]
+        [(inexact? (vector-y dir))
+         (if (zero? (r3d-plane-b p1))
+             (make-vector (vector-x dir)
+                          1
+                          (/ (- (- (r3d-plane-b p0))
+                                (* (r3d-plane-a p0) (vector-x dir)))
+                             (r3d-plane-c p0)))
+             (make-vector (vector-x dir)
+                          1
+                          (/ (- (- (r3d-plane-b p1))
+                                (* (r3d-plane-a p1) (vector-x dir)))
+                             (r3d-plane-c p1))))]
+        [else
+         (if (zero? (r3d-plane-c p1))
+             (make-vector 1
+                          (/ (- (- (r3d-plane-a p0))
+                                (* (r3d-plane-c p0) (vector-z dir)))
+                             (r3d-plane-b p0))
+                          (vector-z dir))
+             (make-vector 1
+                          (/ (- (- (r3d-plane-a p1))
+                                (* (r3d-plane-c p1) (vector-z dir)))
+                             (r3d-plane-b p1))
+                          (vector-z dir)))]))
+
+
+#|
+TODO: Subdividing overlapping mesh faces
+!!!
+
+BASIC PROCEDURE
+
+For each mesh face added to buffer, perform a comparison with each existing
+element as follows:
+1. Compute distance between centroids. If distance is greater than or equal to
+   the sum of the greatest distances between the centroid and farthest vertex
+   in both triangles, skip this comparison.
+2. Compute line of intersection between planes containing both triangles.
+3. Check if computed line of intersection intersects both triangles.
+   3a. Performing checks on two sides of each triangle is sufficient.
+   3b. If either of the triangles have both intersection points very close
+       (within the constant APPROX) to a vertex, return false.
+4. If previous check returned false, skip this comparison.
+5. Subdivide both triangles along line of intersection.
+   5a. For each subdivision:
+   5b. Determine which two edges are intersected by the line.
+   5c. Create a mesh face from the triangle created by cutting along the line.
+   5d. Divide remaining quadrilateral into two triangular mesh faces.
+6. The existing mesh face that has been subdivided is reinserted into the list
+   without checks. The new mesh faces are inserted with this procedure.
+   6a. If possible, skip checks for all polygons that have been checked before.
+
+|#
+
