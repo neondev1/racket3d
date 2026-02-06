@@ -4,22 +4,21 @@
 ## Technical information
 Racket3D uses a [right-handed coordinate system](https://en.wikipedia.org/wiki/Right-handed_coordinate_system) with a vertical *y*-axis.
 
-Rendering is performed on a per-polygon basis, since per-fragment rendering was deemed to be too inefficient for a software-based renderer (especially with Racket).
-Due to this, traditional depth testing is not possible. Thus, Racket3D has a render queue, and every insertion checks for intersections between polygons.
-If any intersection is detected, the affected polygons are subdivided along the line of intersection and reinserted into the list with reduced checks.
-More details are available in the source code.
+Rendering is performed on a per-polygon basis, since per-fragment rendering was deemed to be too inefficient for a software-based renderer (especially with Racket). More details are available in the source code.
 
 Polygon culling may be added in the future to improve performance.
 
 ## Major deviations
 - A single Racket (non-BSL) file that exports `provide` is used to allow for splitting the project into multiple files.
 - As `provide` cannot export `@htdd` tags, any tags from data definitions in `require`d files are placed directly below the line containing the `require`.
+- The `BST` type is generic (i.e. one field is of type `X`) since it does not really make sense for it to pertain to any specific type,
+  even though generic types are not part of SPD.
 - As `local` is not available in BSL, inner functions with accumulators are defined at the top level with the suffix `--acc` as needed.
-  The `@template-origin` of the outer function is simply listed as `(@template-origin accumulator)`.
+  The `@template-origin` of the outer function is simply listed as `accumulator`.
 - `@template`s are not included for `fn-composition` as they are effectively redundant.
 
-## Style deviations
-- Most data structures are namespaced with the `r3d-` prefix to prevent naming conflicts and consistency.
+## Other style deviations
+- Most data type names are namespaced with the `r3d-` prefix to prevent naming conflicts and consistency.
   Heavily used structures, such as `point`, `euler` and `vector`, do not follow this convention to reduce verbosity.
 - Data definition examples are named without abbreviation for single word type names in order to prevent overlap and improve readability.
   For example, data type `Object` has an example named `OBJECT1`. Multi-word type names follow standard style rules.

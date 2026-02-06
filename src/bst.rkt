@@ -15,7 +15,8 @@
 ;;
 ;; BST.rkt
 ;;
-;; BST data definition and utility functions
+;; Binary search tree data definitions and utility functions
+;; since BSL doesn't have a collection with faster than O(n) lookup
 ;;
 
 ;;
@@ -26,7 +27,7 @@
 (define-struct node (key value left right))
 ;; BST is one of:
 ;;  - false
-;;  - (make-node Natural Vector BST BST)
+;;  - (make-node Natural X BST BST)
 ;; interp. a node in a binary search tree, with its key/value and children
 ;; CONSTRAINT: all keys in left must be less than key;
 ;;             all keys in right must be greater than key;
@@ -40,8 +41,8 @@
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;false
-                    compound        ;(make-node Natural Vector BST BST)
-                    ref             ;(node-value BST) is Vector
+                    compound        ;(make-node Natural X BST BST)
+                    ref             ;(node-value BST) is X
                     self-ref        ;(node-left BST) is BST
                     self-ref)       ;(node-right BST) is BST
 
@@ -50,7 +51,7 @@
          (...)]
         [else
          (... (node-key bst)
-              (fn-for-vector (node-value bst))
+              (node-value bst)
               (fn-for-bst (node-left bst))
               (fn-for-bst (node-right bst)))]))
 
@@ -61,39 +62,39 @@
 
 
 (@htdf lookup)
-(@signature Natural BST -> Vector or false)
+(@signature BST Natural -> X or false)
 ;; produce value of node in tree with given key, or false if it does not exist
 ;!!! examples
 
 (@template-origin BST)
 
 (@template
- (define (lookup key node)
-   (cond [(false? node)
+ (define (lookup tree key)
+   (cond [(false? tree)
           (... key)]
          [else
           (... key
-               (node-key node)
-               (node-value node)
-               (lookup key (node-left node))
-               (lookup key (node-right node)))])))
+               (node-key tree)
+               (node-value tree)
+               (lookup (node-left tree) key)
+               (lookup (node-right tree) key))])))
 
-(define (lookup key node)
-  (cond [(false? node)
+(define (lookup tree key)
+  (cond [(false? tree)
          false]
         [else
-         (cond [(= key (node-key node))
-                (node-value node)]
-               [(< key (node-key node))
-                (lookup key (node-left node))]
+         (cond [(= key (node-key tree))
+                (node-value tree)]
+               [(< key (node-key tree))
+                (lookup (node-left tree) key)]
                [else
-                (lookup key (node-right node))])]))
+                (lookup (node-right tree) key)])]))
 
 
 
 (@htdf construct-bst construct-bst--acc)
-(@signature (listof Vector) -> BST)
-;; construct binary search tree from given list of vectors
+(@signature (listof X) -> BST)
+;; construct binary search tree from given list
 ;!!! examples
 
 ;(define (construct-bst lov) false) ;stub
@@ -115,7 +116,7 @@
                              (make-node 0 (first lov) false false)
                              empty)]))
 
-(@template-origin (listof Vector) accumulator)
+(@template-origin (listof X) accumulator)
 
 (@template
  (define (construct-bst--acc lov depths last-depth working-depths
@@ -124,7 +125,7 @@
           (... depths last-depth working-depths
                index fold-counts perfect imperfect)]
          [else
-          (... (fn-for-vector (first lov))
+          (... (first lov)
                depths last-depth working-depths
                index fold-counts perfect imperfect
                (construct-bst--acc (rest lov) (... depths)
@@ -278,7 +279,7 @@ empty                 perfect [0]    perfect [0]
 (check-expect (bst-pattern 3)  (list 0 1 0))
 (check-expect (bst-pattern 10) (list 0 1 0 2 0 1 0 3 0 1))
 (check-expect (bst-pattern 15) (list 0 1 0 2 0 1 0 3 0 1 0 2 0 1 0))
-;; This really just generates the ruler sequence (OEIS: A007814)
+;; This really just generates the zero-based ruler sequence (OEIS: A007814)
 
 ;(define (bst-pattern count) empty) ;stub
 
@@ -393,7 +394,7 @@ empty                 perfect [0]    perfect [0]
 (check-expect (log2 1) 0)
 (check-expect (log2 16) 4)
 (check-expect (log2 4294967296) 32)
-(check-within (log2 10000) 13.28771237954945 APPROX)
+(check-expect (log2 10000) 13)
 
 ;(define (log2 x) 0) ;stub
 
@@ -404,4 +405,4 @@ empty                 perfect [0]    perfect [0]
    (... x)))
 
 (define (log2 x)
-  (inexact->exact (/ (log x) (log 2))))
+  (inexact->exact (round (/ (log x) (log 2)))))
