@@ -162,21 +162,22 @@
 
 
 (@htdd Mesh)
-(define-struct mesh (vertices elements vcount))
-;; Mesh is (make-mesh VertexBuffer ElementBuffer)
+(define-struct mesh (vertices elements count))
+;; Mesh is (make-mesh VertexBuffer ElementBuffer Natural)
 ;; interp. the unique vertices and triangular elements of a mesh,
 ;;         and its vertex count
-;; CONSTRAINT: vcount must be equal to (length vertices)
-(define MESH0 (make-mesh empty empty))
-(define MESH1 (make-mesh VBUF1 EBUF1))
+;; CONSTRAINT: count must be equal to (length vertices)
+(define MESH0 (make-mesh empty empty 0))
+(define MESH1 (make-mesh VBUF1 EBUF1 (length VBUF1)))
 
-(@dd-template-rules compound ;2 cases
+(@dd-template-rules compound ;3 fields
                     ref      ;(mesh-vertices Mesh) is VertexBuffer
                     ref)     ;(mesh-elements Mesh) is ElementBuffer
 
 (define (fn-for-mesh m)
   (... (fn-for-vbuf (mesh-vertices m))
-       (fn-for-ebuf (mesh-elements m))))
+       (fn-for-ebuf (mesh-elements m))
+       (mesh-count m)))
 
 
 
