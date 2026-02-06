@@ -162,9 +162,11 @@
 
 
 (@htdd Mesh)
-(define-struct mesh (vertices elements))
+(define-struct mesh (vertices elements vcount))
 ;; Mesh is (make-mesh VertexBuffer ElementBuffer)
-;; interp. the unique vertices and triangular elements of a mesh
+;; interp. the unique vertices and triangular elements of a mesh,
+;;         and its vertex count
+;; CONSTRAINT: vcount must be equal to (length vertices)
 (define MESH0 (make-mesh empty empty))
 (define MESH1 (make-mesh VBUF1 EBUF1))
 
