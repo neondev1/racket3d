@@ -29,20 +29,21 @@
 ;;  - false
 ;;  - (make-node Natural X BST BST)
 ;; interp. a node in a binary search tree, with its key/value and children
+;;         (generics don't exist in SPD but I don't really care)
 ;; CONSTRAINT: all keys in left must be less than key;
 ;;             all keys in right must be greater than key;
 ;;             all keys must be unique
-(define BST0 false)
-(define BST1 (make-node 3 ZERO-VECTOR
-                        (make-node 1 VECTOR1
-                                   (make-node 0 VECTOR2 false false)
-                                   (make-node 2 VECTOR3 false false))
+(define EMPTY-BST false)
+(define BST1 (make-node 3 3
+                        (make-node 1 1
+                                   (make-node 0 0 false false)
+                                   (make-node 2 2 false false))
                         false))
+;!!! more data examples
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;false
                     compound        ;(make-node Natural X BST BST)
-                    ref             ;(node-value BST) is X
                     self-ref        ;(node-left BST) is BST
                     self-ref)       ;(node-right BST) is BST
 
@@ -93,67 +94,77 @@
 
 
 (@htdf construct-bst construct-bst--acc)
-(@signature (listof X) -> BST)
-;; construct binary search tree from given list
-;!!! examples
+(@signature (listof X) Natural -> BST)
+;; construct binary search tree from given list of known length
+(check-expect (construct-bst empty 0) EMPTY-BST)
+(check-expect (construct-bst (test-list 12345) 12345)
+              (construct-bst-naive (test-list 12345) 12345))
 
-;(define (construct-bst lov) false) ;stub
+;(define (construct-bst lst count) EMPTY-BST) ;stub
 
 (@template-origin accumulator)
 
 (@template
- (define (construct-bst lov)
-   (... (construct-bst--acc (... lov) (... lov) (... lov) (... lov)
-                            (... lov) (... lov) (... lov) (... lov)))))
+ (define (construct-bst lst count)
+   (... (construct-bst--acc (... lst) (... lst count)
+                            (... lst count) (... lst count)
+                            (... lst count) (... lst count)
+                            (... lst count) (... lst count)))))
 
-(define (construct-bst lov)
-  (cond [(empty? lov)
-         false]
+(define (construct-bst lst count)
+  (cond [(empty? lst)
+         EMPTY-BST]
         [else
-         (construct-bst--acc (rest lov)
-                             (rest (bst-pattern (length lov))) 0
+         (construct-bst--acc (rest lst)
+                             (rest (bst-pattern count)) 0
                              empty 1 empty
-                             (make-node 0 (first lov) false false)
+                             (make-node 0 (first lst) false false)
                              empty)]))
 
 (@template-origin (listof X) accumulator)
 
 (@template
- (define (construct-bst--acc lov depths last-depth working-depths
+ (define (construct-bst--acc lst depths last-depth working-depths
                              index fold-counts perfect imperfect)
-   (cond [(empty? lov)
+   (cond [(empty? lst)
           (... depths last-depth working-depths
                index fold-counts perfect imperfect)]
          [else
-          (... (first lov)
+          (... (first lst)
                depths last-depth working-depths
                index fold-counts perfect imperfect
-               (construct-bst--acc (rest lov) (... depths)
+               (construct-bst--acc (rest lst) (... depths)
                                    (... last-depth) (... eff-depth)
                                    (... index) (... fold-counts)
                                    (... perfect) (... imperfect)))])))
 
 ;; depths is (listof Natural)
 ;; INVARIANT: the depth of every node to be created from the corresponding
-;;            element in lov; 0 is deepest and greater values are less deep
+;;            element in lst; 0 is deepest and greater values are less deep
+;;
 ;; last-depth is Natural
-;; INVARIANT: the depth of the last element of lov seen
+;; INVARIANT: the depth of the last element of lst seen
+;;
 ;; working-depths is (listof Natural)
 ;; INVARIANT: the maximum node depth of every BST in imperfect
+;;
 ;; index is Natural
-;; INVARIANT: the zero-based index of the current element of lov
+;; INVARIANT: the zero-based index of the current element of lst
+;;
 ;; fold-counts is (listof Natural)
 ;; INVARIANT: the sequence of numbers of fold operations required to construct
 ;;            a complete binary search tree from perfect and trees in imperfect
+;;
 ;; perfect is BST
 ;; INVARIANT: the last perfect binary search tree constructed that has not
 ;;            been added to a larger tree; false if it does not exist
+;;
 ;; imperfect is (listof BST)
 ;; INVARIANT: the list of all imperfect binary search trees constructed,
 ;;            in reverse chronological order
-(define (construct-bst--acc lov depths last-depth working-depths
+(define (construct-bst--acc lst depths last-depth working-depths
                             index fold-counts perfect imperfect)
-  (cond [(empty? lov)
+  (cond [(empty? lst)
          (if (empty? imperfect)
              perfect
              (fold perfect imperfect
@@ -161,36 +172,36 @@
         [else
          (cond [(zero? (first depths))
                 (if (= last-depth 1)
-                    (construct-bst--acc (rest lov) (rest depths) 0
-                                        (trim working-depths
+                    (construct-bst--acc (rest lst) (rest depths) 0
+                                        (drop working-depths
                                               (first fold-counts))
                                         (add1 index) (rest fold-counts)
-                                        (fold (make-node index (first lov)
+                                        (fold (make-node index (first lst)
                                                          false false)
                                               imperfect (first fold-counts))
-                                        (trim imperfect (first fold-counts)))
-                    (construct-bst--acc (rest lov) (rest depths) 0
+                                        (drop imperfect (first fold-counts)))
+                    (construct-bst--acc (rest lst) (rest depths) 0
                                         working-depths
                                         (add1 index) fold-counts
-                                        (make-node index (first lov)
+                                        (make-node index (first lst)
                                                    false false)
                                         imperfect))]
                [(or (empty? imperfect)
                     (not (= (first depths) (sub1 (first working-depths)))))
-                (construct-bst--acc (rest lov) (rest depths) (first depths)
+                (construct-bst--acc (rest lst) (rest depths) (first depths)
                                     (cons (first depths) working-depths)
                                     (add1 index) (cons (first depths)
                                                        fold-counts)
                                     false
-                                    (cons (make-node index (first lov)
+                                    (cons (make-node index (first lst)
                                                      perfect false)
                                           imperfect))]
                [else
-                (construct-bst--acc (rest lov) (rest depths) (first depths)
+                (construct-bst--acc (rest lst) (rest depths) (first depths)
                                     (cons (first depths) working-depths)
                                     (add1 index) fold-counts
                                     false
-                                    (cons (make-node index (first lov)
+                                    (cons (make-node index (first lst)
                                                      perfect false)
                                           imperfect))])]))
 
@@ -198,7 +209,7 @@
 
 (@htdf fold)
 (@signature (listof BST) (listof BST) Natural -> (listof BST))
-;; recursively attach perfect to (first imperfect) until empty or count is 0
+;; recursively attach perfect to (first imperfect) until empty, or count is 0
 ;!!!
 
 ;(define (fold perfect imperfect depths) empty) ;stub
@@ -245,7 +256,7 @@ empty                 perfect [0]    perfect [0]
 ;; CONSTRAINT: first BST must be nonempty
 ;!!!
 
-;(define (set-right bst right) false) ;stub
+;(define (set-right bst right) EMPTY-BST) ;stub
 
 (@template-origin BST)
 
@@ -309,7 +320,7 @@ empty                 perfect [0]    perfect [0]
                                  (... depth count)))))
 
 (define (depth->bst-pattern depth count)
-  (reverse (trim (depth->bst-pattern--acc depth 0 empty)
+  (reverse (drop (depth->bst-pattern--acc depth 0 empty)
                  (- (sub1 (expt 2 (add1 depth))) count))))
 
 (@template-origin genrec accumulator)
@@ -361,28 +372,75 @@ empty                 perfect [0]    perfect [0]
 
 
 
-(@htdf trim)
-(@signature (listof Natural) Natural -> (listof Natural))
-;; remove given number of elements from beginning of list
-;; CONSTRAINT: list must have at least that many elements
-;!!!
+(@htdf take take--acc)
+(@signature (listof X) Natural -> (listof X))
+;; produce the first n elements of the given list
+;; CONSTRAINT: n must be less than or equal to the length of the list
+(check-expect (take empty 0) empty)
+(check-expect (take (list 0 1 2 3 4) 0) empty)
+(check-expect (take (list 0 1 2 3 4) 3) (list 0 1 2))
+(check-expect (take (list 0 1 2 3 4) (length (list 0 1 2 3 4)))
+              (list 0 1 2 3 4))
 
-;(define (trim lon count) empty) ;stub
+;(define (take lst n) empty) ;stub
 
-(@template-origin Natural)
+(@template-origin accumulator)
 
 (@template
- (define (trim lon count)
-   (cond [(zero? count)
-          (... lon)]
-         [else
-          (... lon count)])))
+ (define (take lst n)
+   (... (take--acc (... lst n) (... lst n) (... lst n)))))
 
-(define (trim lon count)
-  (cond [(zero? count)
-         lon]
+(define (take lst n)
+  (take--acc lst n empty))
+
+(@template-origin Natural accumulator)
+
+(@template
+ (define (take--acc lst n rsf)
+   (cond [(zero? n)
+          (... lst rsf)]
+         [else
+          (... lst n rsf
+               (take--acc (... lst) (sub1 n) (... rsf)))])))
+
+;; lst is (listof X)
+;; INVARIANT: the list of all elements that have not yet been seen
+;;
+;; rsf is (listof X)
+;; INVARIANT: the list of all selected elements so far, in reverse order
+(define (take--acc lst n rsf)
+  (cond [(zero? n)
+         (reverse rsf)]
         [else
-         (trim (rest lon) (sub1 count))]))
+         (take--acc (rest lst) (sub1 n) (cons (first lst) rsf))]))
+
+
+
+(@htdf drop)
+(@signature (listof X) Natural -> (listof X))
+;; produce the given list with the first n elements removed
+;; CONSTRAINT: n must be less than or equal to the length of the list
+(check-expect (drop empty 0) empty)
+(check-expect (drop (list 0 1 2 3 4) 0) (list 0 1 2 3 4))
+(check-expect (drop (list 0 1 2 3 4) 3) (list 3 4))
+(check-expect (drop (list 0 1 2 3 4) (length (list 0 1 2 3 4))) empty)
+
+(@template-origin Natural accumulator)
+
+(@template
+ (define (drop lst n)
+   (cond [(zero? n)
+          (... lst)]
+         [else
+          (... lst n (drop (... lst) (sub1 n)))])))
+
+;; lst is (listof X)
+;; INVARIANT: the list of all remaining elements
+(define (drop lst n)
+  (cond [(zero? n)
+         lst]
+        [else
+         (drop (rest lst) (sub1 n))]))
 
 
 
@@ -394,7 +452,7 @@ empty                 perfect [0]    perfect [0]
 (check-expect (log2 1) 0)
 (check-expect (log2 16) 4)
 (check-expect (log2 4294967296) 32)
-(check-expect (log2 10000) 13)
+(check-within (log2 10000) 13.28771237954945 APPROX)
 
 ;(define (log2 x) 0) ;stub
 
@@ -405,4 +463,128 @@ empty                 perfect [0]    perfect [0]
    (... x)))
 
 (define (log2 x)
-  (inexact->exact (round (/ (log x) (log 2)))))
+  (inexact->exact (/ (log x) (log 2))))
+
+
+;;
+;; TESTING FUNCTIONS
+;;
+
+
+(@htdf construct-bst-naive construct-bst-naive--acc)
+(@signature (listof X) Natural -> BST)
+;; construct binary search tree from given list (slow/non-TR implementation)
+(check-expect (construct-bst empty 0) EMPTY-BST)
+(check-expect (construct-bst (list 0) 1)
+              (make-node 0 0 false false))
+(check-expect (construct-bst (list 0 1 2 3 4) 5)
+              (make-node 3 3
+                         (make-node 1 1
+                                    (make-node 0 0 false false)
+                                    (make-node 2 2 false false))
+                         (make-node 4 4 false false)))
+(check-expect (construct-bst (list 0 1 2 3 4 5 6) 7)
+              (make-node 3 3
+                         (make-node 1 1
+                                    (make-node 0 0 false false)
+                                    (make-node 2 2 false false))
+                         (make-node 5 5
+                                    (make-node 4 4 false false)
+                                    (make-node 6 6 false false))))
+
+;(define (construct-bst-naive lst count) EMPTY-BST) ;stub
+
+(@template-origin accumulator)
+
+(define (construct-bst-naive lst count)
+  (construct-bst-naive--acc lst 0))
+
+(@template-origin genrec accumulator)
+
+(define (construct-bst-naive--acc lst key)
+  (if (empty? lst)
+      EMPTY-BST
+      (make-node (+ key (sub1 (expt 2 (floor (log2 (length lst))))))
+                 (list-ref lst (sub1 (expt 2 (floor (log2 (length lst))))))
+                 (construct-bst-naive--acc
+                  (take lst (sub1 (expt 2 (floor (log2 (length lst))))))
+                  key)
+                 (construct-bst-naive--acc
+                  (drop lst (expt 2 (floor (log2 (length lst)))))
+                  (+ key (expt 2 (floor (log2 (length lst)))))))))
+
+
+
+(@htdf test-list)
+(@signature Natural -> (listof Natural))
+;; produce ascending list of nonnegative integers up to but not including n
+(check-expect (test-list 0) empty)
+(check-expect (test-list 1) (list 0))
+(check-expect (test-list 10) (list 0 1 2 3 4 5 6 7 8 9))
+(check-expect (test-list 16) (list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+
+(@template-origin accumulator)
+
+(@template
+ (define (test-list n)
+   (test-list--acc (... n) (... n))))
+
+(define (test-list n)
+  (test-list--acc n empty))
+
+(@template-origin Natural accumulator)
+
+(@template
+ (define (test-list--acc n rsf)
+   (cond [(zero? n)
+          (... rsf)]
+         [else
+          (... n rsf (test-list--acc (sub1 n) (... rsf)))])))
+
+;; rsf is (listof Natural)
+;; INVARIANT: all numbers between the current number and n, excluding n
+(define (test-list--acc n rsf)
+  (cond [(zero? n)
+         rsf]
+        [else
+         (test-list--acc (sub1 n) (cons (sub1 n) rsf))]))
+
+
+
+(@htdf test-bst-time-regular)
+(@signature Natural -> Natural)
+;; produce time to construct a BST with n elements
+;; (tests not possible)
+
+;(define (test-bst-time-regular n) 0) ;stub
+
+(@template-origin Natural)
+
+(@template
+ (define (test-bst-time-regular n)
+   (... n)))
+
+(define (test-bst-time-regular n)
+  (- (- (first (list (current-milliseconds)
+                     (construct-bst (test-list n) n)))
+        (current-milliseconds))))
+
+
+
+(@htdf test-bst-time-naive)
+(@signature Natural -> Natural)
+;; produce time to construct a BST with n elements using naive implementation
+;; (tests not possible)
+
+;(define (test-bst-time-naive n) 0) ;stub
+
+(@template-origin Natural)
+
+(@template
+ (define (test-bst-time-naive n)
+   (... n)))
+
+(define (test-bst-time-naive n)
+  (- (- (first (list (current-milliseconds)
+                     (construct-bst-naive (test-list n) n)))
+        (current-milliseconds))))
