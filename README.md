@@ -8,7 +8,9 @@ Rendering is performed on a per-polygon basis, since per-fragment rendering was 
 
 Polygon culling may be added in the future to improve performance.
 
-## Major deviations
+## SPD information
+
+### Major deviations
 - A single Racket (non-BSL) file is used to export certain Racket features not available in HtDP languages:
   - `provide` and `all-defined-out`, to allow for splitting the project into multiple files
   - `current-milliseconds`, for diagnostic purposes
@@ -19,9 +21,11 @@ Polygon culling may be added in the future to improve performance.
   The `@template-origin` of the outer function is simply listed as `accumulator`.
 - `@template`s are not included for `fn-composition` as they are effectively redundant.
 
-## Other style deviations
+### Other style information
 - Most data type names are namespaced with the `r3d-` prefix to prevent naming conflicts and consistency.
   Heavily used structures, such as `point`, `euler` and `vector`, do not follow this convention to reduce verbosity.
+- The `construct-bst--acc` function is significantly longer than is permitted by style rules.
+  It is likely impossible to shorten it due to its tail-recursive nature.
 - Data definition examples are named without abbreviation for single word type names in order to prevent overlap and improve readability.
   For example, data type `Object` has an example named `OBJECT1`. Multi-word type names follow standard style rules.
 - Data examples are generally numbered starting from 1. Certain special base cases (e.g. `VBUF0` = `empty`) are instead numbered 0, while others are given special names (e.g. `ZERO-VECTOR`).
