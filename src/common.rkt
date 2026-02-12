@@ -10,7 +10,7 @@
 ;;
 ;; COMMON.rkt
 ;;
-;; Basic data types used throughout Racket3D.
+;; Basic data types and functions used throughout Racket3D.
 ;;
 
 
@@ -114,3 +114,79 @@
   (... (fn-for-point (r3d-triangle-v0 t)) 
        (fn-for-point (r3d-triangle-v1 t))
        (fn-for-point (r3d-triangle-v2 t))))
+
+
+;;
+;; FUNCTIONS
+;;
+
+
+(@htdf take take--acc)
+(@signature (listof X) Natural -> (listof X))
+;; produce the first n elements of the given list
+;; CONSTRAINT: n must be less than or equal to the length of the list
+(check-expect (take empty 0) empty)
+(check-expect (take (list 0 1 2 3 4) 0) empty)
+(check-expect (take (list 0 1 2 3 4) 3) (list 0 1 2))
+(check-expect (take (list 0 1 2 3 4) (length (list 0 1 2 3 4)))
+              (list 0 1 2 3 4))
+
+;(define (take lst n) empty) ;stub
+
+(@template-origin accumulator)
+
+(@template
+ (define (take lst n)
+   (... (take--acc (... lst n) (... lst n) (... lst n)))))
+
+(define (take lst n)
+  (take--acc lst n empty))
+
+(@template-origin Natural accumulator)
+
+(@template
+ (define (take--acc lst n rsf)
+   (cond [(zero? n)
+          (... lst rsf)]
+         [else
+          (... lst n rsf
+               (take--acc (... lst) (sub1 n) (... rsf)))])))
+
+;; lst is (listof X)
+;; INVARIANT: the list of all elements that have not yet been seen
+;;
+;; rsf is (listof X)
+;; INVARIANT: the list of all selected elements so far, in reverse order
+(define (take--acc lst n rsf)
+  (cond [(zero? n)
+         (reverse rsf)]
+        [else
+         (take--acc (rest lst) (sub1 n) (cons (first lst) rsf))]))
+
+
+
+(@htdf drop)
+(@signature (listof X) Natural -> (listof X))
+;; produce the given list with the first n elements removed
+;; CONSTRAINT: n must be less than or equal to the length of the list
+(check-expect (drop empty 0) empty)
+(check-expect (drop (list 0 1 2 3 4) 0) (list 0 1 2 3 4))
+(check-expect (drop (list 0 1 2 3 4) 3) (list 3 4))
+(check-expect (drop (list 0 1 2 3 4) (length (list 0 1 2 3 4))) empty)
+
+(@template-origin Natural accumulator)
+
+(@template
+ (define (drop lst n)
+   (cond [(zero? n)
+          (... lst)]
+         [else
+          (... lst n (drop (... lst) (sub1 n)))])))
+
+;; lst is (listof X)
+;; INVARIANT: the list of all remaining elements
+(define (drop lst n)
+  (cond [(zero? n)
+         lst]
+        [else
+         (drop (rest lst) (sub1 n))]))
