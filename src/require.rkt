@@ -12,6 +12,7 @@
 
 (require "provide.rkt")
 (provide (all-defined-out))
+(provide (matching-identifiers-out #rx"^((?!--).)*$" (all-defined-out)))
 
 (require "common.rkt")
 (@htdd Colour Point Euler Triangle)

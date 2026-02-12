@@ -12,8 +12,8 @@ Polygon culling may be added in the future to improve performance.
 
 ### Major deviations
 - A single Racket (non-BSL) file is used to export certain Racket features not available in HtDP languages:
-  - `provide` and `all-defined-out`, to allow for splitting the project into multiple files
-  - `current-milliseconds`, for diagnostic purposes
+  - `provide`/`all-defined-out`/`matching-identifiers-out`/`except-out`, to allow for splitting the project into multiple files
+  - `current-milliseconds`, for diagnostic purposes; absent from main code
 - As `provide` cannot export `@htdd` tags, any tags from data definitions in `require`d files are placed directly below the line containing the `require`.
 - The `BST` type is generic (i.e. one field is of type `X`) since it does not really make sense for it to pertain to any specific type,
   even though generic types are not part of SPD.
@@ -22,7 +22,7 @@ Polygon culling may be added in the future to improve performance.
 - `@template`s are not included for `fn-composition` as they are effectively redundant.
 
 ### Other style information
-- Most data type names are namespaced with the `r3d-` prefix to prevent naming conflicts and consistency.
+- Most data type names are namespaced with the `r3d-` prefix to prevent naming conflicts and for consistency.
   Heavily used structures, such as `point`, `euler` and `vector`, do not follow this convention to reduce verbosity.
 - The `construct-bst--acc` function is significantly longer than is permitted by style rules.
   It is likely impossible to shorten it due to its tail-recursive nature.

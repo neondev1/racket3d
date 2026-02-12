@@ -5,20 +5,16 @@
 (require 2htdp/image)
 (require 2htdp/universe)
 
-(require "provide.rkt")
-(provide (all-defined-out))
-
 (require "common.rkt")
 (@htdd Colour Point Euler Triangle)
 
 (require "vector.rkt")
 (@htdd Vector Plane Line)
 
-(require "projection.rkt")
-(@htdd Element ElementBuffer)
-
 (require "object.rkt")
-(@htdd Cuboid Icosphere Mesh Object ListOfObject)
+(@htdd Cuboid Icosphere Mesh VertexBuffer Element ElementBuffer Object)
+
+(require "bst.rkt") ;temporary (for running tests)
 
 ;;
 ;; MAIN.rkt
@@ -80,14 +76,14 @@
 
 (@htdd Camera)
 (define-struct camera (gui objects position light time))
-;; Camera is (make-camera GUIState ListOfObject Point Point Natural)
+;; Camera is (make-camera GUIState (listof Object) Point Point Natural)
 ;; interp. GUI state, object list, position of camera/light, time (ticks) since
 ;;         last user interaction. The viewport camera always faces (0, 0, 0).
 (define CAM1 (make-camera GUI1 empty (make-point 1 1 1) (make-point 2 2 2) 0))
 
 (@dd-template-rules compound ;5 fields
                     ref      ;(camera-gui Camera) is GUIState
-                    ref      ;(camera-objects Camera) is ListOfObject
+                    ref      ;(camera-objects Camera) is (listof Object)
                     ref      ;(camera-position Camera) is Point
                     ref)     ;(camera-light Camera) is Point
 
@@ -160,10 +156,10 @@
 
 
 (@htdf render-objects)
-(@signature ListOfObject Point Point -> Image)
+(@signature (listof Object) Point Point -> Image)
 ;; !!!
 
-(define (render-objects obj pos light) MTS) ;stub
+(define (render-objects objs pos light) MTS) ;stub
 
 
 

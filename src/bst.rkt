@@ -4,7 +4,12 @@
 (require spd/tags)
 
 (require "provide.rkt")
-(provide (all-defined-out))
+(provide (except-out (matching-identifiers-out #rx"^((?!--).)*$"
+                                               (all-defined-out))
+                     construct-bst-naive
+                     test-list
+                     test-bst-time-regular
+                     test-bst-time-naive))
 
 (require "common.rkt")
 (@htdd Colour Point Euler Triangle)
@@ -19,9 +24,11 @@
 ;; since BSL doesn't have a collection with faster than O(n) lookup
 ;;
 
+
 ;;
 ;; DATA DEFINITIONS
 ;;
+
 
 (@htdd BST)
 (define-struct node (key value left right))
