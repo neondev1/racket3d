@@ -5,7 +5,7 @@
 (require 2htdp/image)
 
 (require "provide.rkt")
-(provide (all-defined-out))
+(provide (matching-identifiers-out #rx"^((?!--).)*$" (all-defined-out)))
 
 ;;
 ;; COMMON.rkt
