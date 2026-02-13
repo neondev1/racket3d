@@ -1,6 +1,27 @@
 # racket3d
 3D rendering engine written in BSL (Racket) with [SPD](https://github.com/GregorKiczales/spd) tags and style rules.
 
+## Requirements
+racket3d requires [Racket](https://download.racket-lang.org/) to run.
+
+Due to the presence of SPD metadata tags, the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt) is needed to run racket3d. Two options are available:
+
+1. Install the SPD package (https://cs110.students.cs.ubc.ca/spd.plt). This can be done in DrRacket (File > Install package...) or via command line:
+```
+curl https://cs110.students.cs.ubc.ca/spd.plt > spd.plt
+raco setup -A spd.plt
+```
+
+2. Commenting out all SPD tags. This can be done via command line from the racket3d directory:
+```
+sed -i -e 's/(@/#;\n(@/g' src/*.rkt
+# On MacOS:
+sed -i '' -e 's/(@/#;\n(@/g' src/*.rkt
+```
+
+> [!WARNING]
+> If you are running the commands in Option 2, ensure you are running them from the racket3d directory.
+
 ## Technical information
 racket3d uses a [right-handed coordinate system](https://en.wikipedia.org/wiki/Right-handed_coordinate_system) with a vertical *y*-axis.
 
@@ -12,7 +33,7 @@ Polygon culling may be added in the future to improve performance.
 
 ### Major deviations
 - A single Racket (non-BSL) file is used to export certain Racket features not available in HtDP languages:
-  - `provide`/`all-defined-out`/`matching-identifiers-out`/`except-out`, to allow for splitting the project into multiple files
+  - `provide` and \*`-out`, to allow for splitting the project into multiple files
   - `current-milliseconds`, for diagnostic purposes; absent from main code
 - As `provide` cannot export `@htdd` tags, any tags from data definitions in `require`d files are placed directly below the line containing the `require`.
 - The `BST` type is generic (i.e. one field is of type `X`) since it does not really make sense for it to pertain to any specific type,

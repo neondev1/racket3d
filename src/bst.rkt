@@ -538,10 +538,12 @@ empty                 perfect [0]    perfect [0]
 (@htdf test-list)
 (@signature Natural -> (listof Natural))
 ;; produce ascending list of nonnegative integers up to but not including n
-(check-expect (test-list 0) empty)
-(check-expect (test-list 1) (list 0))
+(check-expect (test-list 0)  (list))
+(check-expect (test-list 1)  (list 0))
 (check-expect (test-list 10) (list 0 1 2 3 4 5 6 7 8 9))
 (check-expect (test-list 16) (list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+
+;(define (test-list n) empty) ;stub
 
 (@template-origin accumulator)
 
