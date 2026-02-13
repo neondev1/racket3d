@@ -21,8 +21,7 @@
 (@htdd Colour)
 ;; Colour is Color
 ;; interp. the Color primitive data type provided by 2htdp/image,
-;;         but with a Canadian English name.
-;;         Used in place of Color in this program. 
+;;         but with a Canadian English name. Used in place of Color.
 
 (define COLOUR1 "black")
 (define COLOUR2 "red")
@@ -39,6 +38,7 @@
 (@htdf make-colour)
 (@signature Natural Natural Natural -> Colour)
 ;; produce colour value with RGB value (r, g, b), used in place of make-color
+;; CONSTRAINT: r, g, b must all be less than or equal to 255
 (check-expect (make-colour 0 0 0) (make-color 0 0 0))
 (check-expect (make-colour 76 84 74) (make-color 76 84 74))
 
@@ -76,10 +76,10 @@
 (define-struct euler (alpha beta gamma))
 ;; Euler is (make-euler Number Number Number)
 ;; interp. the Euler angles, in degrees, representing an orientation
-(define EULER1 (make-euler 0 0 0))
-(define EULER2 (make-euler 60 90 180))
-(define EULER3 (make-euler 12.3 45.6 78.9))
-(define EULER4 (make-euler -60 -45.6 0))
+(define EULER0 (make-euler 0 0 0))
+(define EULER1 (make-euler 60 90 180))
+(define EULER2 (make-euler 12.3 45.6 78.9))
+(define EULER3 (make-euler -60 -45.6 0))
 
 (@dd-template-rules compound) ;3 fields
 
@@ -94,7 +94,7 @@
 (define-struct r3d-triangle (v0 v1 v2))
 ;; Triangle is (make-r3d-triangle Point Point Point)
 ;; interp. the three vertices of a triangle
-;; CONSTRAINT: Triangle must be non-degenerate
+;; CONSTRAINT: triangle must be non-degenerate
 (define TRIANGLE1 (make-r3d-triangle (make-point 0 1 1)
                                      (make-point 1 0 1)
                                      (make-point 0 0 1))) ;triangles for a
@@ -173,6 +173,8 @@
 (check-expect (drop (list 0 1 2 3 4) 0) (list 0 1 2 3 4))
 (check-expect (drop (list 0 1 2 3 4) 3) (list 3 4))
 (check-expect (drop (list 0 1 2 3 4) (length (list 0 1 2 3 4))) empty)
+
+;(define (drop lst n) empty) ;stub
 
 (@template-origin Natural accumulator)
 
