@@ -1,12 +1,14 @@
 # racket3d
-3D rendering engine written in BSL (Racket) with [SPD](https://github.com/GregorKiczales/spd) tags and style rules.
+
+3D rendering engine written in BSL (Racket) with [SPD](https://github.com/GregorKiczales/spd) [tags](https://cs110.students.cs.ubc.ca/reference/design-recipes.html) and [style rules](https://cs110.students.cs.ubc.ca/reference/style-rules.html).
 
 ## Requirements
+
 racket3d requires [Racket](https://download.racket-lang.org/) to run.
 
 Due to the presence of SPD metadata tags, the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt) is needed to run racket3d. Two options are available:
 
-1. Install the SPD package (https://cs110.students.cs.ubc.ca/spd.plt). This can be done in DrRacket (File > Install package...) or via command line:
+1. Installing the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt). This can be done in DrRacket (File > Install Package...) with the URL of the link above or via command line:
 ```
 curl https://cs110.students.cs.ubc.ca/spd.plt > spd.plt
 raco setup -A spd.plt
@@ -14,8 +16,9 @@ raco setup -A spd.plt
 
 2. Commenting out all SPD tags. This can be done via command line from the racket3d directory:
 ```
+# For GNU sed (most systems):
 sed -i -e 's/(@/#;\n(@/g' src/*.rkt
-# On MacOS:
+# For BSD sed (MacOS):
 sed -i '' -e 's/(@/#;\n(@/g' src/*.rkt
 ```
 
@@ -23,6 +26,7 @@ sed -i '' -e 's/(@/#;\n(@/g' src/*.rkt
 > If you are running the commands in Option 2, ensure you are running them from the racket3d directory.
 
 ## Technical information
+
 racket3d uses a [right-handed coordinate system](https://en.wikipedia.org/wiki/Right-handed_coordinate_system) with a vertical *y*-axis.
 
 Rendering is performed on a per-polygon basis, since per-fragment rendering was deemed to be too inefficient for a software-based renderer (especially with Racket). More details are available in the source code.
@@ -31,7 +35,12 @@ Polygon culling may be added in the future to improve performance.
 
 ## SPD information
 
+If you don't know what SPD refers to, you probably shouldn't be concerned about anything in this section.
+
+<details><summary>Design and style rules compliance information</summary>
+
 ### Major deviations
+
 - A single Racket (non-BSL) file is used to export certain Racket features not available in HtDP languages:
   - `provide` and \*`-out`, to allow for splitting the project into multiple files
   - `current-milliseconds`, for diagnostic purposes; absent from main code
@@ -43,6 +52,7 @@ Polygon culling may be added in the future to improve performance.
 - `@template`s are not included for `fn-composition` as they are effectively redundant.
 
 ### Other style information
+
 - Most data type names are namespaced with the `r3d-` prefix to prevent naming conflicts and for consistency.
   Heavily used structures, such as `point`, `euler` and `vector`, do not follow this convention to reduce verbosity.
 - The `construct-bst--acc` function is significantly longer than is permitted by style rules.
@@ -52,3 +62,5 @@ Polygon culling may be added in the future to improve performance.
 - Data examples are generally numbered starting from 1. Certain special base cases (e.g. `VBUF0` = `empty`) are instead numbered 0, while others are given special names (e.g. `ZERO-VECTOR`).
 - The primitive data type `Color` is replaced with a newly defined `Colour` in accordance with Canadian English spelling.
   Aside from naming, the two types are functionally identical.
+
+</details>

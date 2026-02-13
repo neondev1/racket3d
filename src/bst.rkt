@@ -122,10 +122,15 @@
 (@signature (listof X) Natural -> BST)
 ;; construct binary search tree from given list of known length
 (check-expect (construct-bst empty 0) EMPTY-BST)
+;; As the behaviour of this implementation for large lists is difficult to infer
+;; and manually creating such test cases is impractical, this function is tested
+;; against a naive genrec implementation which is defined later in this file.
 (check-expect (construct-bst (test-list 10000) 10000)
               (construct-bst-naive (test-list 10000) 10000))
 (check-expect (construct-bst (test-list 12345) 12345)
               (construct-bst-naive (test-list 12345) 12345))
+(check-expect (construct-bst (test-list 15360) 15360)
+              (construct-bst-naive (test-list 15360) 15360))
 (check-expect (construct-bst (test-list 15361) 15361)
               (construct-bst-naive (test-list 15361) 15361))
 (check-expect (construct-bst (test-list 16383) 16383)
