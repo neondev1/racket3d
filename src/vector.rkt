@@ -20,7 +20,9 @@
 ;;
 ;; DATA DEFINITIONS
 ;; Most definitions here are namespaced with the r3d-
-;; prefix to prevent conflicts with the base language
+;; prefix to prevent conflicts with the base language;
+;; others are so named for consistency, except vector
+;; due to its heavy usage everywhere.
 ;;
 
 
@@ -788,13 +790,13 @@ For each mesh face added to buffer, perform a comparison with each existing
 element as follows:
 1. Compute distance between centroids. If distance is greater than or equal to
    the sum of the greatest distances between the centroid and farthest vertex
-   in both triangles, skip this comparison.
+   in both triangles, skip the remainder of this comparison.
 2. Compute line of intersection between planes containing both triangles.
 3. Check if computed line of intersection intersects both triangles.
    3a. Performing checks on two sides of each triangle is sufficient.
    3b. If either of the triangles have both intersection points very close
        (within the constant APPROX) to a vertex, return false.
-4. If previous check returned false, skip this comparison.
+4. If previous check returned false, skip the remainder of this comparison.
 5. Subdivide both triangles along line of intersection.
    5a. For each subdivision:
    5b. Determine which two edges are intersected by the line.
