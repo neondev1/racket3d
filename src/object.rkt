@@ -17,6 +17,29 @@
 ;;
 
 
+(define ICOSAHEDRON-VERTICES
+  (list (make-point 0 1 0)
+        (make-point (/ 2 (sqrt 5)) (/ 1 (sqrt 5)) 0)
+        (make-point (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                    (sqrt (/ (+ 5 (sqrt 5)) 10)))
+        (make-point (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                    (sqrt (/ (- 5 (sqrt 5)) 10)))
+        (make-point (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                    (- (sqrt (/ (- 5 (sqrt 5)) 10))))
+        (make-point (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                    (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
+        (make-point (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
+                    (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
+        (make-point (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
+                    (- (sqrt (/ (- 5 (sqrt 5)) 10))))
+        (make-point (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
+                    (sqrt (/ (- 5 (sqrt 5)) 10)))
+        (make-point (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
+                    (sqrt (/ (+ 5 (sqrt 5)) 10)))
+        (make-point (/ -2 (sqrt 5)) (/ -1 (sqrt 5)) 0)
+        (make-point 0 -1 0)))
+
+
 ;;
 ;; DATA DEFINITIONS
 ;;
@@ -72,7 +95,7 @@
                                    (make-euler -100 -120 140)
                                    -3 -4 -5 0.05 "red"))
 
-(@dd-template-rules compound ;6 fields
+(@dd-template-rules compound ;7 fields
                     ref      ;(icosphere-position Icosphere) is Point
                     ref)     ;(icosphere-rotation Icosphere) is Euler
 
@@ -82,6 +105,7 @@
        (icosphere-x-scale i)                 ;Number
        (icosphere-y-scale i)                 ;Number
        (icosphere-z-scale i)                 ;Number
+       (icosphere-resolution i)              ;Number
        (icosphere-colour i)))                ;Colour
 
 
@@ -208,29 +232,6 @@
          (... (fn-for-mesh o))]))
 
 
-
-(@htdd ListOfObject)
-;; ListOfObject is one of:
-;;  - empty
-;;  - (cons Object ListOfObject)
-;; interp. a list of all objects to be rendered
-(define LOO1 empty)
-(define LOO2 (cons OBJECT1 (cons OBJECT2 (cons OBJECT3 empty))))
-
-(@dd-template-rules one-of          ;2 cases
-                    atomic-distinct ;empty
-                    compound        ;(cons Object ListOfObject)
-                    ref             ;(first ListOfObject) is Object
-                    self-ref)       ;(rest ListOfObject) is ListOfObject
-
-(define (fn-for-loo loo)
-  (cond [(empty? loo)
-         (...)]
-        [else
-         (... (fn-for-object (first loo))
-              (fn-for-loo (rest loo)))]))
-
-
 ;;
 ;; FUNCTIONS
 ;;
@@ -239,6 +240,9 @@
 (@htdf object->mesh)
 (@signature Object -> Mesh)
 ;; produce mesh for rendering given object
+;!!! tests
+
+;(define (object->mesh o) MESH0) ;stub
 
 (@template-origin Object)
 
@@ -257,3 +261,24 @@
         [(icosphere? o)
          (... (fn-for-icosphere o))]
         [else o]))
+
+
+
+(@htdf icosphere->mesh)
+(@signature Icosphere -> Mesh)
+;; produce mesh from icosphere
+;!!! tests
+
+(define (icosphere->mesh i) MESH0) ;stub
+
+(@template-origin Icosphere)
+
+(@template
+ (define (icosphere->mesh i)
+   (... (fn-for-point (icosphere-position i))
+        (fn-for-euler (icosphere-rotation i))
+        (icosphere-x-scale i)
+        (icosphere-y-scale i)
+        (icosphere-z-scale i)
+        (icosphere-resolution i)
+        (icosphere-colour i))))
