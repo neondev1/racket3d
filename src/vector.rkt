@@ -482,7 +482,10 @@
                                                   (make-point 2 0 0)
                                                   (make-point 0 2 0)))
               (make-r3d-plane 0 0 4 0))
-;!!! more examples
+(check-expect (triangle->plane (make-r3d-triangle (make-point 1 -1 4)
+                                                  (make-point -3 4 5)
+                                                  (make-point -1 3 -1)))
+              (make-r3d-plane -29 -22 -6 -31))
 
 ;(define (triangle->plane t) PLANE-XY) ;stub
 
@@ -530,11 +533,19 @@
      (/ (r3d-plane-c p0) (r3d-plane-c p1))))
 
 
+;; NOTE: EVERYTHING BEYOND THIS POINT IS BUGGY AND PROBABLY NEEDS REWRITING
+;;       Maybe use Gaussian elimination instead of hard-coding the calculations
+
 
 (@htdf plane-intersect)
 (@signature Plane Plane -> Line)
 ;; produce parametric line of intersection between two planes
 ;; CONSTRAINT: planes must be nonparallel
+#;
+(check-expect (plane-intersect (make-r3d-plane 1 0 0 1)
+                               (make-r3d-plane 0 0 1 1))
+              (make-r3d-line (make-vector 1 0 1)
+                             (make-vector 0 1 0)))
 (check-expect (plane-intersect PLANE1 PLANE2)
               (make-r3d-line (make-vector 0 -1 0)
                              (make-vector -1/3 -5/3 1)))
