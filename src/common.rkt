@@ -31,7 +31,7 @@
 ;                                        ;like with Color
 
 (define (fn-for-colour c) ;don't need to bother using ref rule
-  (... c))
+  (... c)) ;Color
 
 
 
@@ -42,13 +42,7 @@
 (check-expect (make-colour 0 0 0) (make-color 0 0 0))
 (check-expect (make-colour 76 84 74) (make-color 76 84 74))
 
-;(define (make-colour r g b) "transparent") ;stub
-
 (@template-origin Natural)
-
-(@template
- (define (make-colour r g b)
-   (... r g b)))
 
 (define (make-colour r g b)
   (make-color r g b))
@@ -91,29 +85,29 @@
 
 
 (@htdd Triangle)
-(define-struct r3d-triangle (v0 v1 v2))
-;; Triangle is (make-r3d-triangle Point Point Point)
+(define-struct poly (v0 v1 v2))
+;; Triangle is (make-poly Point Point Point)
 ;; interp. the three vertices of a triangle
 ;; CONSTRAINT: triangle must be non-degenerate
-(define TRIANGLE1 (make-r3d-triangle (make-point 0 1 1)
-                                     (make-point 1 0 1)
-                                     (make-point 0 0 1))) ;triangles for a
-(define TRIANGLE2 (make-r3d-triangle (make-point 0 1 1)   ;rectangular mesh
-                                     (make-point 1 1 1)
-                                     (make-point 1 0 1)))
-(define TRIANGLE3 (make-r3d-triangle (make-point -1 1 1)
-                                     (make-point 1 1 2)
-                                     (make-point 0 0 3)))
+(define TRIANGLE1 (make-poly (make-point 0 1 1)
+                             (make-point 1 0 1)
+                             (make-point 0 0 1))) ;triangles for a
+(define TRIANGLE2 (make-poly (make-point 0 1 1)   ;rectangular mesh
+                             (make-point 1 1 1)
+                             (make-point 1 0 1)))
+(define TRIANGLE3 (make-poly (make-point -1 1 1)
+                             (make-point 1 1 2)
+                             (make-point 0 0 3)))
 
 (@dd-template-rules compound ;4 fields
-                    ref      ;(r3d-triangle-v0 Triangle) is Point
-                    ref      ;(r3d-triangle-v1 Triangle) is Point
-                    ref)     ;(r3d-triangle-v2 Triangle) is Point
+                    ref      ;(poly-v0 Triangle) is Point
+                    ref      ;(poly-v1 Triangle) is Point
+                    ref)     ;(poly-v2 Triangle) is Point
 
 (define (fn-for-triangle t)
-  (... (fn-for-point (r3d-triangle-v0 t)) 
-       (fn-for-point (r3d-triangle-v1 t))
-       (fn-for-point (r3d-triangle-v2 t))))
+  (... (fn-for-point (poly-v0 t))
+       (fn-for-point (poly-v1 t))
+       (fn-for-point (poly-v2 t))))
 
 
 ;;
@@ -131,26 +125,12 @@
 (check-expect (take (list 0 1 2 3 4) (length (list 0 1 2 3 4)))
               (list 0 1 2 3 4))
 
-;(define (take lst n) empty) ;stub
-
 (@template-origin accumulator)
-
-(@template
- (define (take lst n)
-   (... (take--acc (... lst n) (... lst n) (... lst n)))))
 
 (define (take lst n)
   (take--acc lst n empty))
 
 (@template-origin Natural accumulator)
-
-(@template
- (define (take--acc lst n rsf)
-   (cond [(zero? n)
-          (... lst rsf)]
-         [else
-          (... lst n rsf
-               (take--acc (... lst) (sub1 n) (... rsf)))])))
 
 ;; lst is (listof X)
 ;; INVARIANT: the list of all elements that have not yet been seen
@@ -174,16 +154,7 @@
 (check-expect (drop (list 0 1 2 3 4) 3) (list 3 4))
 (check-expect (drop (list 0 1 2 3 4) (length (list 0 1 2 3 4))) empty)
 
-;(define (drop lst n) empty) ;stub
-
 (@template-origin Natural accumulator)
-
-(@template
- (define (drop lst n)
-   (cond [(zero? n)
-          (... lst)]
-         [else
-          (... lst n (drop (... lst) (sub1 n)))])))
 
 ;; lst is (listof X)
 ;; INVARIANT: the list of all remaining elements
