@@ -2,7 +2,6 @@
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-beginner-reader.ss" "lang")((modname object) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
 (require spd/tags)
-(require 2htdp/image)
 
 (require "provide.rkt")
 (provide (all-defined-out))
@@ -15,29 +14,6 @@
 ;;
 ;; Data types for representing general objects, and functions operating on them
 ;;
-
-
-(define ICOSAHEDRON-VERTICES
-  (list (make-point 0 1 0)
-        (make-point (/ 2 (sqrt 5)) (/ 1 (sqrt 5)) 0)
-        (make-point (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
-                    (sqrt (/ (+ 5 (sqrt 5)) 10)))
-        (make-point (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
-                    (sqrt (/ (- 5 (sqrt 5)) 10)))
-        (make-point (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
-                    (- (sqrt (/ (- 5 (sqrt 5)) 10))))
-        (make-point (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
-                    (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
-        (make-point (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
-                    (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
-        (make-point (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
-                    (- (sqrt (/ (- 5 (sqrt 5)) 10))))
-        (make-point (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
-                    (sqrt (/ (- 5 (sqrt 5)) 10)))
-        (make-point (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
-                    (sqrt (/ (+ 5 (sqrt 5)) 10)))
-        (make-point (/ -2 (sqrt 5)) (/ -1 (sqrt 5)) 0)
-        (make-point 0 -1 0)))
 
 
 ;;
@@ -138,23 +114,22 @@
 
 
 (@htdd Element)
-(define-struct element (v0 v1 v2 colour))
-;; Element is (make-element Natural Natural Natural Colour)
+(define-struct element (v0 v1 v2))
+;; Element is (make-element Natural Natural Natural)
 ;; interp. the indices of the three vertices of a triangular mesh element
-;;         in a VertexBuffer, as well as the element's colour
+;;         in the VertexBuffer to which this element corresponds
 ;; CONSTRAINT: No two vertices can be the same, and the resulting
 ;;             triangular element must not be degenerate; v0, v1, v2 must
 ;;             be less than the length of the corresponding VertexBuffer
-(define ELEMENT1 (make-element 0 1 2 "green"))
-(define ELEMENT2 (make-element 2 1 0 "black"))
+(define ELEMENT1 (make-element 0 1 2))
+(define ELEMENT2 (make-element 2 1 0))
 
-(@dd-template-rules compound) ;4 fields
+(@dd-template-rules compound) ;3 fields
 
 (define (fn-for-element e)
   (... (element-v0 e)
        (element-v1 e)
-       (element-v2 e)
-       (element-colour e)))
+       (element-v2 e)))
 
 
 
@@ -165,10 +140,10 @@
 ;; interp. a list of VertexBuffer indices of vertices of triangular elements
 ;;         constituting a mesh, similar to an EBO in OpenGL
 (define EBUF0 empty)
-(define EBUF1 (list (make-element 0 1 2 "blue")
-                    (make-element 0 2 3 "blue")
-                    (make-element 0 3 1 "blue")
-                    (make-element 1 3 2 "blue")))
+(define EBUF1 (list (make-element 0 1 2)
+                    (make-element 0 2 3)
+                    (make-element 0 3 1)
+                    (make-element 1 3 2)))
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;empty
@@ -233,6 +208,44 @@
 
 
 ;;
+;; CONSTANTS
+;;
+
+
+(define ICOSAHEDRON-VERTICES
+  (list (make-point 0 1 0)
+        (make-point (/ 2 (sqrt 5)) (/ 1 (sqrt 5)) 0)
+        (make-point (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                    (sqrt (/ (+ 5 (sqrt 5)) 10)))
+        (make-point (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                    (sqrt (/ (- 5 (sqrt 5)) 10)))
+        (make-point (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                    (- (sqrt (/ (- 5 (sqrt 5)) 10))))
+        (make-point (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                    (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
+        (make-point (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
+                    (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
+        (make-point (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
+                    (- (sqrt (/ (- 5 (sqrt 5)) 10))))
+        (make-point (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
+                    (sqrt (/ (- 5 (sqrt 5)) 10)))
+        (make-point (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
+                    (sqrt (/ (+ 5 (sqrt 5)) 10)))
+        (make-point (/ -2 (sqrt 5)) (/ -1 (sqrt 5)) 0)
+        (make-point 0 -1 0)))
+
+(define ICOSAHDRON-ELEMENTS
+  (list (make-element 0 1 2) (make-element 0 2 3) (make-element 0 3 4)
+        (make-element 0 4 5) (make-element 0 5 1)
+        (make-element 1 8 2) (make-element 2 9 3) (make-element 3 10 4)
+        (make-element 4 6 5) (make-element 5 7 1)
+        (make-element 6 4 10) (make-element 7 5 6) (make-element 8 1 7)
+        (make-element 9 2 8) (make-element 10 3 9)
+        (make-element 11 6 10) (make-element 11 7 6) (make-element 11 8 7)
+        (make-element 11 9 8) (make-element 11 10 9)))
+
+
+;;
 ;; FUNCTIONS
 ;;
 
@@ -242,18 +255,7 @@
 ;; produce mesh for rendering given object
 ;!!! tests
 
-;(define (object->mesh o) MESH0) ;stub
-
 (@template-origin Object)
-
-(@template
- (define (object->mesh o)
-   (cond [(cuboid? o)
-          (... (fn-for-cuboid o))]
-         [(icosphere? o)
-          (... (fn-for-icosphere o))]
-         [else
-          (... (fn-for-mesh o))])))
 
 (define (object->mesh o)
   (cond [(cuboid? o)
@@ -270,15 +272,3 @@
 ;!!! tests
 
 (define (icosphere->mesh i) MESH0) ;stub
-
-(@template-origin Icosphere)
-
-(@template
- (define (icosphere->mesh i)
-   (... (fn-for-point (icosphere-position i))
-        (fn-for-euler (icosphere-rotation i))
-        (icosphere-x-scale i)
-        (icosphere-y-scale i)
-        (icosphere-z-scale i)
-        (icosphere-resolution i)
-        (icosphere-colour i))))

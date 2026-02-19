@@ -106,15 +106,7 @@
 ;; produce 3D projection matrix from coordinates of camera
 ;!!! examples
 
-;(define (camera-matrix s) IDENTITY) ;stub
-
 (@template-origin Spherical)
-
-(@template
- (define (camera-matrix s)
-   (... (spherical-r s)
-        (spherical-pitch s)
-        (spherical-yaw s))))
 
 (define (camera-matrix s)
   (matrix-multiply
@@ -130,15 +122,7 @@
 ;; convert spherical coordinates into a position vector
 ;!!! examples
 
-;(define (spherical->vector s) ZERO-VECTOR) ;stub
-
 (@template-origin Spherical)
-
-(@template
- (define (spherical->vector s)
-   (... (spherical-r s)
-        (spherical-pitch s)
-        (spherical-yaw s))))
 
 (define (spherical->vector s)
   (make-vector (* (spherical-r s)
@@ -171,13 +155,6 @@
 
 (@template-origin Vector)
 
-(@template
- (define (vector->homogeneous v)
-   (... (vector-x v)
-        (vector-y v)
-        (vector-z v))))
-
-
 (define (vector->homogeneous v)
   (make-homogeneous (vector-x v)
                     (vector-y v)
@@ -192,14 +169,6 @@
 ;!!! examples
 
 (@template-origin Homogeneous)
-
-(@template
- (define (homogeneous->vector h)
-   (... (homogeneous-x h)
-        (homogeneous-y h)
-        (homogeneous-z h)
-        (homogeneous-w h))))
-
 
 (define (homogeneous->vector h)
   (if (zero? (homogeneous-w h))
@@ -216,12 +185,6 @@
 
 (@template-origin Vector)
 
-(@template
- (define (translation-matrix v)
-   (... (vector-x v)
-        (vector-y v)
-        (vector-z v))))
-
 (define (translation-matrix v)
   (make-matrix 1 0 0 (vector-x v)
                0 1 0 (vector-y v)
@@ -235,10 +198,6 @@
 ;; produce rotation matrix from given yaw, pitch and roll
 
 (@template-origin Number)
-
-(@template
- (define (rotation-matrix yaw pitch roll)
-   (... yaw pitch roll)))
 
 (define (rotation-matrix yaw pitch roll)
   (matrix-multiply
@@ -265,10 +224,6 @@
 
 (@template-origin Number)
 
-(@template
- (define (projection-matrix r)
-   (... r)))
-
 (define (projection-matrix r)
   (make-matrix 1 0 0 0
                0 1 0 0
@@ -283,17 +238,6 @@
 ;!!! examples
 
 (@template-origin Matrix)
-
-(@template
- (define (matrix-multiply m0 m1)
-   (... (matrix-m11 m0) (matrix-m12 m0) (matrix-m13 m0) (matrix-m14 m0)
-        (matrix-m21 m0) (matrix-m22 m0) (matrix-m23 m0) (matrix-m24 m0)
-        (matrix-m31 m0) (matrix-m32 m0) (matrix-m33 m0) (matrix-m34 m0)
-        (matrix-m41 m0) (matrix-m42 m0) (matrix-m43 m0) (matrix-m44 m0)
-        (matrix-m11 m1) (matrix-m12 m1) (matrix-m13 m1) (matrix-m14 m1)
-        (matrix-m21 m1) (matrix-m22 m1) (matrix-m23 m1) (matrix-m24 m1)
-        (matrix-m31 m1) (matrix-m32 m1) (matrix-m33 m1) (matrix-m34 m1)
-        (matrix-m41 m1) (matrix-m42 m1) (matrix-m43 m1) (matrix-m44 m1))))
 
 (define (matrix-multiply m0 m1)
   (make-matrix (+ (* (matrix-m11 m0) (matrix-m11 m1))
@@ -369,17 +313,6 @@
 ;!!! examples
 
 (@template-origin Matrix Homogeneous)
-
-(@template
- (define (transform-homogeneous m h)
-   (... (matrix-m11 m) (matrix-m12 m) (matrix-m13 m) (matrix-m14 m)
-        (matrix-m21 m) (matrix-m22 m) (matrix-m23 m) (matrix-m24 m)
-        (matrix-m31 m) (matrix-m32 m) (matrix-m33 m) (matrix-m34 m)
-        (matrix-m41 m) (matrix-m42 m) (matrix-m43 m) (matrix-m44 m)
-        (homogeneous-x h)
-        (homogeneous-y h)
-        (homogeneous-z h)
-        (homogeneous-w h))))
 
 (define (transform-homogeneous m h)
   (make-homogeneous (+ (* (matrix-m11 m) (homogeneous-x h))

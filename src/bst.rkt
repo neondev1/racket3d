@@ -94,17 +94,6 @@
 
 (@template-origin BST)
 
-(@template
- (define (lookup tree key)
-   (cond [(false? tree)
-          (... key)]
-         [else
-          (... key
-               (node-key tree)
-               (node-value tree)
-               (lookup (node-left tree) key)
-               (lookup (node-right tree) key))])))
-
 (define (lookup tree key)
   (cond [(false? tree)
          false]
@@ -140,16 +129,7 @@
 (check-expect (construct-bst (test-list 16404) 16404)
               (construct-bst-naive (test-list 16404) 16404))
 
-;(define (construct-bst lst count) EMPTY-BST) ;stub
-
 (@template-origin accumulator)
-
-(@template
- (define (construct-bst lst count)
-   (... (construct-bst--acc (... lst) (... lst count)
-                            (... lst count) (... lst count)
-                            (... lst count) (... lst count)
-                            (... lst count) (... lst count)))))
 
 (define (construct-bst lst count)
   (cond [(empty? lst)
@@ -162,21 +142,6 @@
                              empty)]))
 
 (@template-origin (listof X) accumulator)
-
-(@template
- (define (construct-bst--acc lst depths last-depth working-depths
-                             index fold-counts perfect imperfect)
-   (cond [(empty? lst)
-          (... depths last-depth working-depths
-               index fold-counts perfect imperfect)]
-         [else
-          (... (first lst)
-               depths last-depth working-depths
-               index fold-counts perfect imperfect
-               (construct-bst--acc (rest lst) (... depths)
-                                   (... last-depth) (... eff-depth)
-                                   (... index) (... fold-counts)
-                                   (... perfect) (... imperfect)))])))
 
 ;; depths is (listof Natural)
 ;; INVARIANT: the depth of every node to be created from the corresponding
@@ -291,22 +256,7 @@
                                     (make-node 8 8 false false)
                                     (make-node 10 10 false false))))
 
-;(define (fold perfect imperfect depths) empty) ;stub
-
 (@template-origin 2-one-of accumulator)
-
-(@template
- (define (fold perfect imperfect count)
-   (cond [(and (zero? count) (empty? imperfect))
-          (... perfect)]
-         [(zero? count)
-          (... perfect)]
-         [(empty? imperfect)
-          (... perfect)]
-         [else
-          (... perfect (first imperfect) count
-               (fold--acc (... perfect)
-                          (rest imperfect) (sub1 count)))])))
 
 #|
              count    0              (add1 Natural)
@@ -351,20 +301,7 @@ empty                 perfect [0]    perfect [0]
                                     (make-node 1 1 false false))
                          false))
 
-;(define (set-right bst right) EMPTY-BST) ;stub
-
 (@template-origin BST)
-
-(@template
- (define (set-right bst right)
-   (cond [(false? bst)
-          (...)]
-         [else
-          (... (node-key bst)
-               (node-value bst)
-               (fn-for-bst (node-left bst))
-               (fn-for-bst (node-right bst))
-               right)])))
 
 (define (set-right bst right)
   (cond [(false? bst)
@@ -387,8 +324,6 @@ empty                 perfect [0]    perfect [0]
 (check-expect (bst-pattern 15) (list 0 1 0 2 0 1 0 3 0 1 0 2 0 1 0))
 ;; This really just generates the zero-based ruler sequence (OEIS: A007814)
 
-;(define (bst-pattern count) empty) ;stub
-
 (@template-origin fn-composition)
 
 (define (bst-pattern count)
@@ -404,28 +339,13 @@ empty                 perfect [0]    perfect [0]
 (check-expect (depth->bst-pattern 4 10) (list 0 1 0 2 0 1 0 3 0 1))
 (check-expect (depth->bst-pattern 4 15) (list 0 1 0 2 0 1 0 3 0 1 0 2 0 1 0))
 
-;(define (depth->bst-pattern depth count) empty) ;stub
-
 (@template-origin accumulator)
-
-(@template
- (define (depth->bst-pattern depth count)
-   (... (depth->bst-pattern--acc (... depth count)
-                                 (... depth count)
-                                 (... depth count)))))
 
 (define (depth->bst-pattern depth count)
   (reverse (drop (depth->bst-pattern--acc depth 0 empty)
                  (- (sub1 (expt 2 (add1 depth))) count))))
 
 (@template-origin genrec accumulator)
-
-(@template
- (define (depth->bst-pattern--acc target depth last)
-   (if (... target depth last)
-       (... target depth last)
-       (... target depth last
-            (depth->bst-pattern--acc target (... depth) (... last))))))
 
 ;; depth is Natural
 ;; INVARIANT: depth of the current part of the BST pattern being generated
@@ -454,13 +374,7 @@ empty                 perfect [0]    perfect [0]
 (check-expect (cons-pattern 3 (list 0 1 0 2 0 1 0))
               (list 0 1 0 2 0 1 0 3 0 1 0 2 0 1 0))
 
-;(define (cons-pattern n lon) empty) ;stub
-
 (@template-origin Natural)
-
-(@template
- (define (cons-pattern n lon)
-   (... n lon)))
 
 (define (cons-pattern n lon)
   (append lon (list n) lon))
@@ -477,13 +391,7 @@ empty                 perfect [0]    perfect [0]
 (check-expect (log2 4294967296) 32)
 (check-within (log2 10000) 13.28771237954945 APPROX)
 
-;(define (log2 x) 0) ;stub
-
 (@template-origin Number)
-
-(@template
- (define (log2 x)
-   (... x)))
 
 (define (log2 x)
   (inexact->exact (/ (log x) (log 2))))
@@ -514,8 +422,6 @@ empty                 perfect [0]    perfect [0]
                          (make-node 5 5
                                     (make-node 4 4 false false)
                                     (make-node 6 6 false false))))
-
-;(define (construct-bst-naive lst count) EMPTY-BST) ;stub
 
 (@template-origin accumulator)
 
@@ -548,25 +454,12 @@ empty                 perfect [0]    perfect [0]
 (check-expect (test-list 10) (list 0 1 2 3 4 5 6 7 8 9))
 (check-expect (test-list 16) (list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
 
-;(define (test-list n) empty) ;stub
-
 (@template-origin accumulator)
-
-(@template
- (define (test-list n)
-   (test-list--acc (... n) (... n))))
 
 (define (test-list n)
   (test-list--acc n empty))
 
 (@template-origin Natural accumulator)
-
-(@template
- (define (test-list--acc n rsf)
-   (cond [(zero? n)
-          (... rsf)]
-         [else
-          (... n rsf (test-list--acc (sub1 n) (... rsf)))])))
 
 ;; rsf is (listof Natural)
 ;; INVARIANT: all numbers between the current number and n, excluding n
@@ -583,13 +476,7 @@ empty                 perfect [0]    perfect [0]
 ;; produce time to construct a BST with n elements
 ;; (tests not possible)
 
-;(define (test-bst-time-regular n) 0) ;stub
-
 (@template-origin Natural)
-
-(@template
- (define (test-bst-time-regular n)
-   (... n)))
 
 (define (test-bst-time-regular n)
   (- (- (first (list (current-milliseconds)
@@ -603,13 +490,7 @@ empty                 perfect [0]    perfect [0]
 ;; produce time to construct a BST with n elements using naive implementation
 ;; (tests not possible)
 
-;(define (test-bst-time-naive n) 0) ;stub
-
 (@template-origin Natural)
-
-(@template
- (define (test-bst-time-naive n)
-   (... n)))
 
 (define (test-bst-time-naive n)
   (- (- (first (list (current-milliseconds)
