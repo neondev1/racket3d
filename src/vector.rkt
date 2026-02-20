@@ -158,7 +158,7 @@
 (@signature Vector -> Number)
 ;; produce magnitude of given vector
 (check-expect (vector-magnitude ZERO-VECTOR) 0)
-(check-within (vector-magnitude (make-vector 1 1 1)) (sqrt 3) APPROX)
+(check-within (vector-magnitude (make-vector 1 1 1)) (sqrt 3) DELTA)
 (check-expect (vector-magnitude (make-vector -2 3 -6)) 7)
 
 (@template-origin Vector)
@@ -243,10 +243,10 @@
               0)
 (check-within (vector-angle (make-vector 1 0 0)
                             (make-vector 0 2 3))
-              (/ pi 2) APPROX)
+              (/ pi 2) DELTA)
 (check-within (vector-angle (make-vector 1 0 0)
                             (make-vector -1 0 0))
-              pi APPROX)
+              pi DELTA)
 
 (@template-origin fn-composition)
 
@@ -585,7 +585,7 @@ element as follows:
 3. Check if computed line of intersection intersects both triangles.
    3a. Performing checks on two sides of each triangle is sufficient.
    3b. If either of the triangles have both intersection points very close
-       (within the constant APPROX) to a vertex, return false.
+       (within the constant DELTA) to a vertex, return false.
 4. If previous check returned false, skip the remainder of this comparison.
 5. Subdivide both triangles along line of intersection.
    5a. For each subdivision:

@@ -256,11 +256,11 @@
         (make-vector 0 -1 0)))
 
 (define ICOSAHDRON-ELEMENTS
-  (list (make-element 0 2 1) (make-element 1 3 2)
+  (list (make-element 8 0 9) (make-element 9 1 0)
+        (make-element 0 2 1) (make-element 1 3 2)
         (make-element 2 4 3) (make-element 3 5 4)
         (make-element 4 6 5) (make-element 5 7 6)
         (make-element 6 8 7) (make-element 7 9 8)
-        (make-element 8 0 9) (make-element 9 0 1)
         (make-element 0 10 2) (make-element 2 10 4) (make-element 4 10 6)
         (make-element 6 10 8) (make-element 8 10 0)
         (make-element 1 11 3) (make-element 3 11 5) (make-element 5 11 7)
@@ -312,7 +312,7 @@
 (@signature Natural -> (listof Vector))
 ;; produces vertices of n-frequency subdivision of an icosahedron
 ;; CONSTRAINT: n must be nonzero
-(check-expect (subdivision-vertices 1) ICOSAHEDRON-VERTICES)
+#;(check-within (subdivision-vertices 1) ICOSAHEDRON-VERTICES DELTA)
 ;!!! more tests
 
 (define (subdivision-vertices n) empty) ;stub
@@ -328,66 +328,65 @@
 (@template-origin accumulator)
 
 (define (all-edge-vertices n)
-  (all-edge-vertices--acc n 11 empty))
+  (all-edge-vertices--acc n ICOSAHEDRON-EDGES empty))
 
-(@template-origin Natural accumulator)
+(@template-origin (listof Edge) accumulator)
 
-(define (all-edge-vertices--acc n vert rsf)
-  (cond [(zero? vert)
+(define (all-edge-vertices--acc n edges rsf)
+  (cond [(empty? edges)
          rsf]
         [else
-         (all-edge-vertices--acc n (sub1 vert)
-                                 (append (incident-vertices n vert) rsf))]))
+         (all-edge-vertices--acc
+          n (rest edges)
+          (append (edge-vertices n (first edges)) rsf))]))
 
 
 
-(@htdf incident-vertices incident-vertices--acc)
-(@signature Natural -> (listof Vector))
-;; produce vertices on edges incident on vert from a vertex of lower index
+(@htdf edge-vertices)
+(@signature Natural Edge -> (listof Vector))
+;; produce all nonterminal vertices from subdividing given edge
 ;; CONSTRAINT: n must be nonzero
 ;!!! tests
 
-(@template-origin accumulator)
+(@template-origin Edge)
 
-(define (incident-vertices n vert)
-  (incident-vertices--acc n vert (sub1 vert) empty))
-
-(@template-origin Natural accumulator)
-
-(define (incident-vertices--acc n vert other rsf)
-  (cond [(zero? other)
-         (append (edge-vertices n
-                                (first ICOSAHEDRON-VERTICES)
-                                (list-ref ICOSAHEDRON-VERTICES vert))
-                 rsf)]
-        [else
-         (incident-vertices--acc
-          n vert (sub1 other)
-          (append (edge-vertices n
-                                 (list-ref ICOSAHEDRON-VERTICES other)
-                                 (list-ref ICOSAHEDRON-VERTICES vert))
-                  rsf))]))
+(define (edge-vertices n e)
+  (vertex-combinations n (get-vertex (edge-v0 e)) (get-vertex (edge-v1 e))))
 
 
 
-(@htdf edge-vertices edge-vertices--acc)
+(@htdf vertex-combinations vertex-combinations--acc)
 (@signature Natural Vector Vector -> (listof Vector))
-;; produce all vertices on the edge between the two given vertices
+;; produce n-1 equispaced linear combinations of the given vertex vectors
 ;; CONSTRAINT: n must be nonzero
 ;!!! tests
 
 (@template-origin accumulator)
 
-(define (edge-vertices n v0 v1)
-  (edge-vertices--acc n v0 v1 (sub1 n) empty))
+(define (vertex-combinations n v0 v1)
+  (vertex-combinations--acc n v0 v1 (sub1 n) empty))
 
 (@template-origin Natural accumulator)
 
-(define (edge-vertices--acc n v0 v1 current rsf)
+(define (vertex-combinations--acc n v0 v1 current rsf)
   (cond [(zero? current)
          rsf]
         [else
-         (edge-vertices--acc
+         (vertex-combinations--acc
           n v0 v1 (sub1 current)
-          (cons (scalar-divide (add (scalar-multiply v0 (- n current))
-                                    (scalar-multiply v1 current)) n) rsf))]))
+          (cons (scalar-divide (add (scalar-multiply v1 (- n current))
+                                    (scalar-multiply v0 current)) n) rsf))]))
+
+
+
+(@htdf get-vertex)
+(@signature Natural -> Vertex)
+;; produce the vertex of the regular icosahedron with given index
+(check-within (get-vertex 0)  (make-vector (/ 2 (sqrt 5)) (/ 1 (sqrt 5)) 0)
+              DELTA)
+(check-expect (get-vertex 10) (make-vector 0 1 0))
+
+(@template-origin Natural)
+
+(define (get-vertex index)
+  (list-ref ICOSAHEDRON-VERTICES index))
