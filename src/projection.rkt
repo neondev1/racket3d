@@ -8,10 +8,10 @@
 (provide (all-defined-out))
 
 (require "common.rkt")
-(@htdd Colour Point Euler Triangle)
+(@htdd Colour Vector Euler Triangle)
 
 (require "vector.rkt")
-(@htdd Vector Plane Line)
+(@htdd Plane Line)
 
 ;;
 ;; PROJECTION.rkt
@@ -56,9 +56,9 @@
 ;; Homogeneous is (make-homo Number Number Number Number)
 ;; interp. homogeneous coordinates for matrix transformations
 (define HOMO0 (make-homogeneous 0 0 0 1))
-(define HOMO1 (make-homogeneous (point-x POINT1)
-                                (point-y POINT1)
-                                (point-z POINT1) 1))
+(define HOMO1 (make-homogeneous (vector-x VECTOR2)
+                                (vector-y VECTOR2)
+                                (vector-z VECTOR2) 1))
 
 (@dd-template-rules compound) ;4 fields
 

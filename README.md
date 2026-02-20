@@ -6,9 +6,9 @@
 
 racket3d requires [Racket](https://download.racket-lang.org/) to run.
 
-Due to the presence of SPD metadata tags, the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt) is needed to run racket3d. Two options are available:
+Due to the use of SPD metadata tags, the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt) is needed to run racket3d. Two options are available:
 
-1. Installing the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt). This can be done in DrRacket (File > Install Package...) with the URL of the link above or via command line:
+1. Installing the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt). This can be done in DrRacket (File > Install Package...) with the URL above or via command line:
 ```
 curl https://cs110.students.cs.ubc.ca/spd.plt > spd.plt
 raco setup -A spd.plt
@@ -35,7 +35,7 @@ Polygon culling may be added in the future to improve performance.
 
 ## SPD information
 
-If you don't know what SPD refers to, you probably shouldn't be concerned about anything in this section.
+If you don't know what SPD refers to, you probably don't need to worry about anything in this section.
 
 <details><summary>Design and style rules compliance information</summary>
 

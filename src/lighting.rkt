@@ -7,12 +7,6 @@
 (require "provide.rkt")
 (provide (all-defined-out))
 
-(require "common.rkt")
-(@htdd Colour Point Euler Triangle)
-
-(require "vector.rkt")
-(@htdd Vector Plane Line)
-
 ;;
 ;; LIGHTING.rkt
 ;;
