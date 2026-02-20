@@ -14,8 +14,8 @@
 ;;
 
 
-;; For use with inexact numbers to account for floating-point errors
-(define APPROX (expt 10 -12))
+;; For use with inexact number tests to account for floating-point imprecision
+(define DELTA (expt 10 -12))
 
 
 (@htdd Colour)

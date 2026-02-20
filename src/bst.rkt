@@ -4,18 +4,10 @@
 (require spd/tags)
 
 (require "provide.rkt")
-(provide (except-out (matching-identifiers-out #rx"^((?!--).)*$"
-                                               (all-defined-out))
-                     construct-bst-naive
-                     test-list
-                     test-bst-time-regular
-                     test-bst-time-naive))
+(provide (matching-identifiers-out #rx"^((?!--).)*$" (all-defined-out)))
 
 (require "common.rkt")
 (@htdd Colour Vector Euler Triangle)
-
-(require "vector.rkt")
-(@htdd Plane Line)
 
 ;;
 ;; BST.rkt
@@ -106,6 +98,20 @@
                 (lookup (node-right tree) key)])]))
 
 
+#|
+(Probably) O(n) BST construction from a singly linked list
+Some notes:
+- Generating the pattern for the BST takes O(n) time (due to using reverse).
+- The actual traversal performs one pass over the list, mostly calling
+  non-recursive (O(1)) functions on each element for total complexity O(n).
+- The only recursive functions called are drop and fold. However, the total
+  number of calls (recursive or non-recursive) to each function is guaranteed
+  to be less than the number of elements in the list.
+- Hence the overall time complexity should probably be O(n), which is optimal.
+- I have no idea if this algorithm is optimal or overcomplicated; I came up
+  with its design while sleep deprived at like 2 AM and never touched it again.
+|#
+
 
 (@htdf construct-bst construct-bst--acc)
 (@signature (listof X) Natural -> BST)
@@ -114,20 +120,20 @@
 ;; As the behaviour of this implementation for large lists is difficult to infer
 ;; and manually creating such test cases is impractical, this function is tested
 ;; against a naive genrec implementation which is defined later in this file.
-(check-expect (construct-bst (test-list 10000) 10000)
-              (construct-bst-naive (test-list 10000) 10000))
-(check-expect (construct-bst (test-list 12345) 12345)
-              (construct-bst-naive (test-list 12345) 12345))
-(check-expect (construct-bst (test-list 15360) 15360)
-              (construct-bst-naive (test-list 15360) 15360))
-(check-expect (construct-bst (test-list 15361) 15361)
-              (construct-bst-naive (test-list 15361) 15361))
-(check-expect (construct-bst (test-list 16383) 16383)
-              (construct-bst-naive (test-list 16383) 16383))
-(check-expect (construct-bst (test-list 16384) 16384)
-              (construct-bst-naive (test-list 16384) 16384))
-(check-expect (construct-bst (test-list 16404) 16404)
-              (construct-bst-naive (test-list 16404) 16404))
+(check-expect (construct-bst (make-list--test 10000) 10000)
+              (construct-bst-naive--test (make-list--test 10000) 10000))
+(check-expect (construct-bst (make-list--test 12345) 12345)
+              (construct-bst-naive--test (make-list--test 12345) 12345))
+(check-expect (construct-bst (make-list--test 15360) 15360)
+              (construct-bst-naive--test (make-list--test 15360) 15360))
+(check-expect (construct-bst (make-list--test 15361) 15361)
+              (construct-bst-naive--test (make-list--test 15361) 15361))
+(check-expect (construct-bst (make-list--test 16383) 16383)
+              (construct-bst-naive--test (make-list--test 16383) 16383))
+(check-expect (construct-bst (make-list--test 16384) 16384)
+              (construct-bst-naive--test (make-list--test 16384) 16384))
+(check-expect (construct-bst (make-list--test 16404) 16404)
+              (construct-bst-naive--test (make-list--test 16404) 16404))
 
 (@template-origin accumulator)
 
@@ -209,6 +215,10 @@
                                     (cons (make-node index (first lst)
                                                      perfect false)
                                           imperfect))])]))
+;; This function rather grossly violates style rules (being much longer than the
+;; stipulated ~10-line limit), though it is unlikely that shortening it is
+;; possible without breaking more design rules due to its relatively complex
+;; logic and tail-recursive nature, which is necessary for efficiency reasons.
 
 
 
@@ -389,7 +399,7 @@ empty                 perfect [0]    perfect [0]
 (check-expect (log2 1) 0)
 (check-expect (log2 16) 4)
 (check-expect (log2 4294967296) 32)
-(check-within (log2 10000) 13.28771237954945 APPROX)
+(check-within (log2 10000) 13.28771237954945 DELTA)
 
 (@template-origin Number)
 
@@ -402,19 +412,19 @@ empty                 perfect [0]    perfect [0]
 ;;
 
 
-(@htdf construct-bst-naive construct-bst-naive--acc)
+(@htdf construct-bst-naive--test construct-bst-naive--acc)
 (@signature (listof X) Natural -> BST)
 ;; construct binary search tree from given list (slow/non-TR implementation)
-(check-expect (construct-bst empty 0) EMPTY-BST)
-(check-expect (construct-bst (list 0) 1)
+(check-expect (construct-bst-naive--test empty 0) EMPTY-BST)
+(check-expect (construct-bst-naive--test (list 0) 1)
               (make-node 0 0 false false))
-(check-expect (construct-bst (list 0 1 2 3 4) 5)
+(check-expect (construct-bst-naive--test (list 0 1 2 3 4) 5)
               (make-node 3 3
                          (make-node 1 1
                                     (make-node 0 0 false false)
                                     (make-node 2 2 false false))
                          (make-node 4 4 false false)))
-(check-expect (construct-bst (list 0 1 2 3 4 5 6) 7)
+(check-expect (construct-bst-naive--test (list 0 1 2 3 4 5 6) 7)
               (make-node 3 3
                          (make-node 1 1
                                     (make-node 0 0 false false)
@@ -425,7 +435,7 @@ empty                 perfect [0]    perfect [0]
 
 (@template-origin accumulator)
 
-(define (construct-bst-naive lst count)
+(define (construct-bst-naive--test lst count)
   (construct-bst-naive--acc lst 0))
 
 (@template-origin genrec accumulator)
@@ -446,53 +456,53 @@ empty                 perfect [0]    perfect [0]
 
 
 
-(@htdf test-list)
+(@htdf make-list--test)
 (@signature Natural -> (listof Natural))
 ;; produce ascending list of nonnegative integers up to but not including n
-(check-expect (test-list 0)  (list))
-(check-expect (test-list 1)  (list 0))
-(check-expect (test-list 10) (list 0 1 2 3 4 5 6 7 8 9))
-(check-expect (test-list 16) (list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+(check-expect (make-list--test 0)  (list))
+(check-expect (make-list--test 1)  (list 0))
+(check-expect (make-list--test 10) (list 0 1 2 3 4 5 6 7 8 9))
+(check-expect (make-list--test 16) (list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
 
 (@template-origin accumulator)
 
-(define (test-list n)
-  (test-list--acc n empty))
+(define (make-list--test n)
+  (make-list--acc n empty))
 
 (@template-origin Natural accumulator)
 
 ;; rsf is (listof Natural)
 ;; INVARIANT: all numbers between the current number and n, excluding n
-(define (test-list--acc n rsf)
+(define (make-list--acc n rsf)
   (cond [(zero? n)
          rsf]
         [else
-         (test-list--acc (sub1 n) (cons (sub1 n) rsf))]))
+         (make-list--acc (sub1 n) (cons (sub1 n) rsf))]))
 
 
 
-(@htdf test-bst-time-regular)
+(@htdf bst-time-regular--test)
 (@signature Natural -> Natural)
 ;; produce time to construct a BST with n elements
 ;; (tests not possible)
 
 (@template-origin Natural)
 
-(define (test-bst-time-regular n)
+(define (bst-time-regular--test n)
   (- (- (first (list (current-milliseconds)
-                     (construct-bst (test-list n) n)))
+                     (construct-bst (make-list--test n) n)))
         (current-milliseconds))))
 
 
 
-(@htdf test-bst-time-naive)
+(@htdf bst-time-naive--test)
 (@signature Natural -> Natural)
 ;; produce time to construct a BST with n elements using naive implementation
 ;; (tests not possible)
 
 (@template-origin Natural)
 
-(define (test-bst-time-naive n)
+(define (bst-time-naive--test n)
   (- (- (first (list (current-milliseconds)
-                     (construct-bst-naive (test-list n) n)))
+                     (construct-bst-naive--test (make-list--test n) n)))
         (current-milliseconds))))

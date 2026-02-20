@@ -53,7 +53,6 @@ If you don't know what SPD refers to, you probably don't need to worry about any
 
 ### Other style information
 
-- The `construct-bst--acc` function is significantly longer than is permitted by style rules. It is likely impossible to shorten it due to its tail-recursive nature.
 - Data definition examples are named without abbreviation for single word type names in order to prevent overlaps and improve readability.
   For example, data type `Object` has an example named `OBJECT1`. Multi-word type names follow standard style rules.
 - Data examples are generally numbered starting from 1. Certain special base cases (e.g. `VBUF0` = `empty`) are instead numbered 0, while others are given special names (e.g. `ZERO-VECTOR`).
