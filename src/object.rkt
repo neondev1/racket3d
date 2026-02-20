@@ -7,7 +7,7 @@
 (provide (all-defined-out))
 
 (require "common.rkt")
-(@htdd Colour Point Euler Triangle)
+(@htdd Colour Vector Euler Triangle)
 
 ;;
 ;; OBJECT.rkt
@@ -23,39 +23,39 @@
 
 (@htdd Cuboid)
 (define-struct cuboid (position rotation x-scale y-scale z-scale colour))
-;; Cuboid is (make-cuboid Point Euler Number Number Number Colour)
+;; Cuboid is (make-cuboid Vector Euler Number Number Number Colour)
 ;; interp. the position, orientation, x, y, z scales and colour of a cuboid
-(define CUBOID1 (make-cuboid ORIGIN ;Unit cube
+(define CUBOID1 (make-cuboid ORIGIN ;unit cube
                              (make-euler 0 0 0)
                              1 1 1 "black")) 
-(define CUBOID2 (make-cuboid (make-point 1 2 3)
+(define CUBOID2 (make-cuboid (make-vector 1 2 3)
                              (make-euler 0 0 0)
                              2 4 6 "black"))
-(define CUBOID3 (make-cuboid (make-point 1 2 1)
+(define CUBOID3 (make-cuboid (make-vector 1 2 1)
                              (make-euler 45 45 45)
                              2 3 4 "black"))
-(define CUBOID4 (make-cuboid (make-point -1 -2 -3)
+(define CUBOID4 (make-cuboid (make-vector -1 -2 -3)
                              (make-euler -50 -30 -15)
                              -5 0 -4 "red"))
 
 (@dd-template-rules compound ;6 fields
-                    ref      ;(cuboid-position Cuboid) is Point
+                    ref      ;(cuboid-position Cuboid) is Vector
                     ref)     ;(cuboid-rotation Cuboid) is Euler
 
 (define (fn-for-cuboid c)
-  (... (fn-for-point (cuboid-position c))
+  (... (fn-for-vector (cuboid-position c))
        (fn-for-euler (cuboid-rotation c))
-       (cuboid-x-scale c)                 ;Number
-       (cuboid-y-scale c)                 ;Number
-       (cuboid-z-scale c)                 ;Number
-       (cuboid-colour c)))                ;Colour
+       (cuboid-x-scale c)                  ;Number
+       (cuboid-y-scale c)                  ;Number
+       (cuboid-z-scale c)                  ;Number
+       (cuboid-colour c)))                 ;Colour
 
 
 
 (@htdd Icosphere)
 (define-struct icosphere
   (position rotation x-scale y-scale z-scale resolution colour))
-;; Icosphere is (make-icosphere Point Euler Number Number Number Number Colour)
+;; Icosphere is (make-icosphere Vector Euler Number Number Number Number Colour)
 ;; interp. the position, orientation, x, y, z scales, resolution and colour of
 ;;         an icosphere; resolution determines the maximum allowable side length
 (define ICOSPHERE1 (make-icosphere ORIGIN ;sphere
@@ -64,19 +64,19 @@
 (define ICOSPHERE2 (make-icosphere ORIGIN                ;rotated (ico)sphere
                                    (make-euler 23 37 79) ;is nearly identical
                                    1 1 1 0.1 "black")) 
-(define ICOSPHERE3 (make-icosphere (make-point 1 3 5)
+(define ICOSPHERE3 (make-icosphere (make-vector 1 3 5)
                                    (make-euler 100 120 140)
                                    3 4 5 0.1 "black"))
-(define ICOSPHERE4 (make-icosphere (make-point -1 -3 -5)
+(define ICOSPHERE4 (make-icosphere (make-vector -1 -3 -5)
                                    (make-euler -100 -120 140)
                                    -3 -4 -5 0.05 "red"))
 
 (@dd-template-rules compound ;7 fields
-                    ref      ;(icosphere-position Icosphere) is Point
+                    ref      ;(icosphere-position Icosphere) is Vector
                     ref)     ;(icosphere-rotation Icosphere) is Euler
 
 (define (fn-for-icosphere i)
-  (... (fn-for-point (icosphere-position i))
+  (... (fn-for-vector (icosphere-position i))
        (fn-for-euler (icosphere-rotation i))
        (icosphere-x-scale i)                 ;Number
        (icosphere-y-scale i)                 ;Number
@@ -89,26 +89,26 @@
 (@htdd VertexBuffer)
 ;; VertexBuffer is one of:
 ;;  - empty
-;;  - (cons Point VertexBuffer)
+;;  - (cons Vector VertexBuffer)
 ;; interp. a list of unique vertices of a mesh, similar to a VBO in OpenGL
 ;; CONSTRAINT: No duplicate vertices should be present in the list
 (define VBUF0 empty)
-(define VBUF1 (list (make-point 2 0 0)
-                    (make-point -1 2 0)
-                    (make-point -1 -1 (/ (sqrt 13) 2))
-                    (make-point -1 -1 (/ (sqrt 13) -2)))) ;tetrahedron example
+(define VBUF1 (list (make-vector 2 0 0)
+                    (make-vector -1 2 0)
+                    (make-vector -1 -1 (/ (sqrt 13) 2))
+                    (make-vector -1 -1 (/ (sqrt 13) -2)))) ;tetrahedron example
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;empty
-                    compound        ;(cons Point VertexBuffer)
-                    ref             ;(first VertexBuffer) is Point
+                    compound        ;(cons Vector VertexBuffer)
+                    ref             ;(first VertexBuffer) is Vector
                     self-ref)       ;(rest VertexBuffer) is VertexBuffer
 
 (define (fn-for-vbuf vbuf)
   (cond [(empty? vbuf)
          (...)]
         [else
-         (... (fn-for-point (first vbuf))
+         (... (fn-for-vector (first vbuf))
               (fn-for-vbuf (rest vbuf)))]))
 
 
@@ -213,26 +213,26 @@
 
 
 (define ICOSAHEDRON-VERTICES
-  (list (make-point 0 1 0)
-        (make-point (/ 2 (sqrt 5)) (/ 1 (sqrt 5)) 0)
-        (make-point (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+  (list (make-vector 0 1 0)
+        (make-vector (/ 2 (sqrt 5)) (/ 1 (sqrt 5)) 0)
+        (make-vector (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
                     (sqrt (/ (+ 5 (sqrt 5)) 10)))
-        (make-point (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+        (make-vector (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
                     (sqrt (/ (- 5 (sqrt 5)) 10)))
-        (make-point (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+        (make-vector (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
                     (- (sqrt (/ (- 5 (sqrt 5)) 10))))
-        (make-point (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+        (make-vector (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
                     (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
-        (make-point (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
+        (make-vector (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
                     (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
-        (make-point (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
+        (make-vector (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
                     (- (sqrt (/ (- 5 (sqrt 5)) 10))))
-        (make-point (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
+        (make-vector (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
                     (sqrt (/ (- 5 (sqrt 5)) 10)))
-        (make-point (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
+        (make-vector (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
                     (sqrt (/ (+ 5 (sqrt 5)) 10)))
-        (make-point (/ -2 (sqrt 5)) (/ -1 (sqrt 5)) 0)
-        (make-point 0 -1 0)))
+        (make-vector (/ -2 (sqrt 5)) (/ -1 (sqrt 5)) 0)
+        (make-vector 0 -1 0)))
 
 (define ICOSAHDRON-ELEMENTS
   (list (make-element 0 1 2) (make-element 0 2 3) (make-element 0 3 4)

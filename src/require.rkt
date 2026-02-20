@@ -6,7 +6,8 @@
 ;;
 ;; REQUIRE.rkt
 ;;
-;; Contains all @htdd tags for every .rkt file for convenience
+;; Contains all @htdd tags for every .rkt file for convenience;
+;; Also useful for running tests
 ;;
 
 
@@ -15,10 +16,10 @@
 (provide (matching-identifiers-out #rx"^((?!--).)*$" (all-defined-out)))
 
 (require "common.rkt")
-(@htdd Colour Point Euler Triangle)
+(@htdd Colour Vector Euler Triangle)
 
 (require "vector.rkt")
-(@htdd Vector Plane Line)
+(@htdd Plane Line)
 
 (require "bst.rkt")
 (@htdd BST)
@@ -28,3 +29,7 @@
 
 (require "object.rkt")
 (@htdd Cuboid Icosphere Mesh VertexBuffer Element ElementBuffer Object)
+
+(require "lighting.rkt")
+
+(require "main.rkt")

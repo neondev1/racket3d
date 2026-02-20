@@ -8,7 +8,7 @@
 (provide (all-defined-out))
 
 (require "common.rkt")
-(@htdd Colour Point Euler Triangle)
+(@htdd Colour Vector Euler Triangle)
 
 ;;
 ;; VECTOR.rkt
@@ -20,24 +20,6 @@
 ;;
 ;; DATA DEFINITIONS
 ;;
-
-
-(@htdd Vector)
-(define-struct vector (x y z))
-;; Vector is (make-vector Number Number Number)
-;; interp. the x, y and z components of a 3D vector
-(define ZERO-VECTOR (make-vector 0 0 0)) ;zero vector
-(define VECTOR1 (make-vector 0 0 1))     ;unit vector normal to xy plane
-(define VECTOR2 (make-vector 1.3 3.5 5.7))
-(define VECTOR3 (make-vector -1.3 -3.5 -5.7))
-
-(@dd-template-rules compound) ;3 fields
-
-(define (fn-for-vector v)
-  (... (vector-x v)   ;Number
-       (vector-y v)   ;Number
-       (vector-z v))) ;Number
-
 
 
 (@htdd Plane)
@@ -188,60 +170,6 @@
 
 
 
-(@htdf vector->point)
-(@signature Vector -> Point)
-;; produce point given position vector
-(check-expect (vector->point ZERO-VECTOR) ORIGIN)
-(check-expect (vector->point (make-vector 14.7 25.8 36.9))
-              (make-point 14.7 25.8 36.9))
-
-(@template-origin Vector)
-
-(define (vector->point p)
-  (make-point (vector-x p)
-              (vector-y p)
-              (vector-z p)))
-
-
-
-(@htdf point->vector)
-(@signature Point -> Vector)
-;; produce position vector of given point
-(check-expect (point->vector ORIGIN) ZERO-VECTOR)
-(check-expect (point->vector (make-point 14.7 25.8 36.9))
-              (make-vector 14.7 25.8 36.9))
-
-(@template-origin Point)
-
-(define (point->vector p)
-  (make-vector (point-x p)
-               (point-y p)
-               (point-z p)))
-
-
-
-(@htdf points->vector)
-(@signature Point Point -> Vector)
-;; produce vector from first to second point
-(check-expect (points->vector (make-point 0 0 0)
-                              (make-point 0 0 0))
-              (make-vector 0 0 0))
-(check-expect (points->vector (make-point 0 0 0)
-                              (make-point 1 -2 3))
-              (make-vector 1 -2 3))
-(check-expect (points->vector (make-point 1.2 -3.4 5.6)
-                              (make-point 1.3 5.7 -9.1))
-              (make-vector 0.1 9.1 -14.7))
-
-(@template-origin Point)
-
-(define (points->vector p0 p1)
-  (make-vector (- (point-x p1) (point-x p0))
-               (- (point-y p1) (point-y p0))
-               (- (point-z p1) (point-z p0))))
-
-
-
 (@htdf cross-product)
 (@signature Vector Vector -> Vector)
 ;; produce cross product of given vectors
@@ -289,20 +217,20 @@
 (@htdf normal)
 (@signature Triangle -> Vector)
 ;; produce a vector normal to given triangle with unspecified magnitude
-(check-expect (normal (make-poly (make-point 0 0 0)
-                                         (make-point 2 0 0)
-                                         (make-point 0 2 0)))
+(check-expect (normal (make-poly (make-vector 0 0 0)
+                                 (make-vector 2 0 0)
+                                 (make-vector 0 2 0)))
               (make-vector 0 0 4))
-(check-expect (normal (make-poly (make-point 0 0 0)
-                                         (make-point 0 2 0)
-                                         (make-point 2 0 0)))
+(check-expect (normal (make-poly (make-vector 0 0 0)
+                                 (make-vector 0 2 0)
+                                 (make-vector 2 0 0)))
               (make-vector 0 0 -4))
 
 (@template-origin Triangle)
 
 (define (normal t)
-  (cross-product (points->vector (poly-v0 t) (poly-v1 t))
-                 (points->vector (poly-v0 t) (poly-v2 t))))
+  (cross-product (sub (poly-v1 t) (poly-v0 t))
+                 (sub (poly-v2 t) (poly-v0 t))))
 
 
 
@@ -337,28 +265,28 @@
 
 (define (normal->plane n p)
   (make-plane (vector-x n)
-                  (vector-y n)
-                  (vector-z n)
-                  (dot-product n p)))
+              (vector-y n)
+              (vector-z n)
+              (dot-product n p)))
 
 
 
 (@htdf triangle->plane)
 (@signature Triangle -> Plane)
 ;; produce Cartesian form of plane containing triangle
-(check-expect (triangle->plane (make-poly (make-point 0 0 0)
-                                                  (make-point 2 0 0)
-                                                  (make-point 0 2 0)))
+(check-expect (triangle->plane (make-poly (make-vector 0 0 0)
+                                          (make-vector 2 0 0)
+                                          (make-vector 0 2 0)))
               (make-plane 0 0 4 0))
-(check-expect (triangle->plane (make-poly (make-point 1 -1 4)
-                                                  (make-point -3 4 5)
-                                                  (make-point -1 3 -1)))
+(check-expect (triangle->plane (make-poly (make-vector 1 -1 4)
+                                          (make-vector -3 4 5)
+                                          (make-vector -1 3 -1)))
               (make-plane -29 -22 -6 -31))
 
 (@template-origin fn-composition)
 
 (define (triangle->plane t)
-  (normal->plane (normal t) (point->vector (poly-v0 t))))
+  (normal->plane (normal t) (poly-v0 t)))
 
 
 

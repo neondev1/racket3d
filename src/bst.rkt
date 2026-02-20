@@ -12,10 +12,10 @@
                      test-bst-time-naive))
 
 (require "common.rkt")
-(@htdd Colour Point Euler Triangle)
+(@htdd Colour Vector Euler Triangle)
 
 (require "vector.rkt")
-(@htdd Vector Plane Line)
+(@htdd Plane Line)
 
 ;;
 ;; BST.rkt

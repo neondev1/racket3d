@@ -49,21 +49,23 @@
 
 
 
-(@htdd Point)
-(define-struct point (x y z))
-;; Point is (make-point Number Number Number)
-;; interp. the x, y and z coordinates of a point
-(define ORIGIN (make-point 0 0 0))
-(define POINT1 (make-point 1 1 1))
-(define POINT2 (make-point 0.1 1.2 2.3))
-(define POINT3 (make-point -0.1 0 -1))
+(@htdd Vector)
+(define-struct vector (x y z))
+;; Vector is (make-vector Number Number Number)
+;; interp. the x, y and z components of a 3-dimensional vector
+(define ZERO-VECTOR (make-vector 0 0 0)) ;zero vector
+(define ORIGIN ZERO-VECTOR)
+(define VECTOR1 (make-vector 0 0 1))     ;unit vector normal to xy plane
+(define VECTOR2 (make-vector 1.3 3.5 5.7))
+(define VECTOR3 (make-vector -1.3 -3.5 -5.7))
 
 (@dd-template-rules compound) ;3 fields
 
-(define (fn-for-point p)
-  (... (point-x p)   ;Number
-       (point-y p)   ;Number
-       (point-z p))) ;Number
+(define (fn-for-vector v)
+  (... (vector-x v)   ;Number
+       (vector-y v)   ;Number
+       (vector-z v))) ;Number
+
 
 
 (@htdd Euler)
@@ -86,28 +88,28 @@
 
 (@htdd Triangle)
 (define-struct poly (v0 v1 v2))
-;; Triangle is (make-poly Point Point Point)
-;; interp. the three vertices of a triangle
+;; Triangle is (make-poly Vector Vector Vector)
+;; interp. the position vectors of the three vertices of a triangle
 ;; CONSTRAINT: triangle must be non-degenerate
-(define TRIANGLE1 (make-poly (make-point 0 1 1)
-                             (make-point 1 0 1)
-                             (make-point 0 0 1))) ;triangles for a
-(define TRIANGLE2 (make-poly (make-point 0 1 1)   ;rectangular mesh
-                             (make-point 1 1 1)
-                             (make-point 1 0 1)))
-(define TRIANGLE3 (make-poly (make-point -1 1 1)
-                             (make-point 1 1 2)
-                             (make-point 0 0 3)))
+(define TRIANGLE1 (make-poly (make-vector 0 1 1)
+                             (make-vector 1 0 1)
+                             (make-vector 0 0 1))) ;triangles for a
+(define TRIANGLE2 (make-poly (make-vector 0 1 1)   ;rectangular mesh
+                             (make-vector 1 1 1)
+                             (make-vector 1 0 1)))
+(define TRIANGLE3 (make-poly (make-vector -1 1 1)
+                             (make-vector 1 1 2)
+                             (make-vector 0 0 3)))
 
 (@dd-template-rules compound ;4 fields
-                    ref      ;(poly-v0 Triangle) is Point
-                    ref      ;(poly-v1 Triangle) is Point
-                    ref)     ;(poly-v2 Triangle) is Point
+                    ref      ;(poly-v0 Triangle) is Vector
+                    ref      ;(poly-v1 Triangle) is Vector
+                    ref)     ;(poly-v2 Triangle) is Vector
 
 (define (fn-for-triangle t)
-  (... (fn-for-point (poly-v0 t))
-       (fn-for-point (poly-v1 t))
-       (fn-for-point (poly-v2 t))))
+  (... (fn-for-vector (poly-v0 t))
+       (fn-for-vector (poly-v1 t))
+       (fn-for-vector (poly-v2 t))))
 
 
 ;;
