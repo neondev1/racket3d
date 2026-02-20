@@ -23,7 +23,7 @@ jobs:
     - name: Run tests
       id: run_tests
       run: |
-        echo "$(xvfb-run -a raco test src/main.rkt 2>&1)" > output.txt
+        echo "$(xvfb-run -a raco test src/require.rkt 2>&1)" > output.txt
         cat output.txt
         printf "\`\`\`\n$(cat output.txt)\n\`\`\`" > $GITHUB_STEP_SUMMARY
         echo "FAIL=$([[ "$(cat output.txt)" =~ ".rkt:" || "$(cat output.txt)" =~ "fail" ]] && echo 1 || echo 0)" > $GITHUB_OUTPUT
