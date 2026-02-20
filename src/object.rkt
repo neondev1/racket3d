@@ -1,6 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-beginner-reader.ss" "lang")((modname object) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname object) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
 (require spd/tags)
 
 (require "provide.rkt")
@@ -143,6 +143,9 @@
 ;;  - (cons Element ElementBuffer)
 ;; interp. a list of VertexBuffer indices of vertices of triangular elements
 ;;         constituting a mesh, similar to an EBO in OpenGL
+;; N.B. The purpose of this type is to reduce the number of (per-frame) matrix
+;;      transformations required, unlike in OpenGL where EBOs are primarily
+;;      used for optimizing memory consumption (which is not a focus here).
 (define EBUF0 empty)
 (define EBUF1 (list (make-element 0 1 2)
                     (make-element 0 2 3)
@@ -332,6 +335,11 @@
 
 (@template-origin (listof Edge) accumulator)
 
+;; edges is (listof Edge)
+;; INVARIANT: the list of edges for which vertices have not yet been generated
+;;
+;; rsf is (listof Vector)
+;; INVARIANT: the list of all vertices generated so far
 (define (all-edge-vertices--acc n edges rsf)
   (cond [(empty? edges)
          rsf]
@@ -368,14 +376,20 @@
 
 (@template-origin Natural accumulator)
 
-(define (vertex-combinations--acc n v0 v1 current rsf)
-  (cond [(zero? current)
+;; next is Natural
+;; INVARIANT: the coefficient of the first vector in the next linear combination
+;;            to be generated (given by (v0 * next + v1 * (n - next)) / n)
+;;
+;; rsf is (listof Vertex)
+;; INVARIANT: the list of all vertices generated so far
+(define (vertex-combinations--acc n v0 v1 next rsf)
+  (cond [(zero? next)
          rsf]
         [else
          (vertex-combinations--acc
-          n v0 v1 (sub1 current)
-          (cons (scalar-divide (add (scalar-multiply v1 (- n current))
-                                    (scalar-multiply v0 current)) n) rsf))]))
+          n v0 v1 (sub1 next)
+          (cons (scalar-divide (add (scalar-multiply v1 (- n next))
+                                    (scalar-multiply v0 next)) n) rsf))]))
 
 
 
