@@ -9,10 +9,14 @@
 (require "common.rkt")
 (@htdd Colour Vector Euler Triangle)
 
+(require "vector.rkt")
+(@htdd Plane Line)
+
 ;;
 ;; OBJECT.rkt
 ;;
-;; Data types for representing general objects, and functions operating on them
+;; Data types for representing general objects,
+;; and functions to convert them to meshes
 ;;
 
 
@@ -207,42 +211,71 @@
          (... (fn-for-mesh o))]))
 
 
+
+(@htdd Edge)
+(define-struct edge (v0 v1))
+;; Edge is (make-edge Natural Natural)
+;; interp. the indices, in ICOSAHEDRON-VERTICES, of the two vertices defining
+;;         the edge of an icosahedron
+(define EDGE1 (make-edge 0 1))  ;valid edge
+(define EDGE2 (make-edge 10 4)) ;another valid edge
+(define EDGE3 (make-edge 10 7)) ;"invalid" edge
+
+(@dd-template-rules compound) ;2 fields
+
+(define (fn-for-edge e)
+  (... (edge-v0 e)   ;Natural
+       (edge-v1 e))) ;Natural
+
+
 ;;
 ;; CONSTANTS
 ;;
 
 
 (define ICOSAHEDRON-VERTICES
-  (list (make-vector 0 1 0)
-        (make-vector (/ 2 (sqrt 5)) (/ 1 (sqrt 5)) 0)
-        (make-vector (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
-                    (sqrt (/ (+ 5 (sqrt 5)) 10)))
-        (make-vector (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
-                    (sqrt (/ (- 5 (sqrt 5)) 10)))
-        (make-vector (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
-                    (- (sqrt (/ (- 5 (sqrt 5)) 10))))
-        (make-vector (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
-                    (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
-        (make-vector (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
-                    (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
+  (list (make-vector (/ 2 (sqrt 5)) (/ 1 (sqrt 5)) 0)
         (make-vector (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
-                    (- (sqrt (/ (- 5 (sqrt 5)) 10))))
-        (make-vector (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
-                    (sqrt (/ (- 5 (sqrt 5)) 10)))
+                     (sqrt (/ (- 5 (sqrt 5)) 10)))
+        (make-vector (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                     (sqrt (/ (+ 5 (sqrt 5)) 10)))
         (make-vector (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
-                    (sqrt (/ (+ 5 (sqrt 5)) 10)))
+                     (sqrt (/ (+ 5 (sqrt 5)) 10)))
+        (make-vector (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                     (sqrt (/ (- 5 (sqrt 5)) 10)))
         (make-vector (/ -2 (sqrt 5)) (/ -1 (sqrt 5)) 0)
+        (make-vector (/ (- -5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                     (- (sqrt (/ (- 5 (sqrt 5)) 10))))
+        (make-vector (/ (- (sqrt 5) 5) 10) (/ -1 (sqrt 5))
+                     (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
+        (make-vector (/ (- 5 (sqrt 5)) 10) (/ 1 (sqrt 5))
+                     (- (sqrt (/ (+ 5 (sqrt 5)) 10))))
+        (make-vector (/ (+ 5 (sqrt 5)) 10) (/ -1 (sqrt 5))
+                     (- (sqrt (/ (- 5 (sqrt 5)) 10))))
+        (make-vector 0 1 0)
         (make-vector 0 -1 0)))
 
 (define ICOSAHDRON-ELEMENTS
-  (list (make-element 0 1 2) (make-element 0 2 3) (make-element 0 3 4)
-        (make-element 0 4 5) (make-element 0 5 1)
-        (make-element 1 8 2) (make-element 2 9 3) (make-element 3 10 4)
-        (make-element 4 6 5) (make-element 5 7 1)
-        (make-element 6 4 10) (make-element 7 5 6) (make-element 8 1 7)
-        (make-element 9 2 8) (make-element 10 3 9)
-        (make-element 11 6 10) (make-element 11 7 6) (make-element 11 8 7)
-        (make-element 11 9 8) (make-element 11 10 9)))
+  (list (make-element 0 2 1) (make-element 1 3 2)
+        (make-element 2 4 3) (make-element 3 5 4)
+        (make-element 4 6 5) (make-element 5 7 6)
+        (make-element 6 8 7) (make-element 7 9 8)
+        (make-element 8 0 9) (make-element 9 0 1)
+        (make-element 0 10 2) (make-element 2 10 4) (make-element 4 10 6)
+        (make-element 6 10 8) (make-element 8 10 0)
+        (make-element 1 11 3) (make-element 3 11 5) (make-element 5 11 7)
+        (make-element 7 11 9) (make-element 9 11 1)))
+
+(define ICOSAHEDRON-EDGES
+  (list (make-edge 0 8) (make-edge 0 9) (make-edge 1 9) (make-edge 1 0)
+        (make-edge 2 0) (make-edge 2 1) (make-edge 3 1) (make-edge 3 2)
+        (make-edge 4 2) (make-edge 4 3) (make-edge 5 3) (make-edge 5 4)
+        (make-edge 6 4) (make-edge 6 5) (make-edge 7 5) (make-edge 7 6)
+        (make-edge 8 6) (make-edge 8 7) (make-edge 9 7) (make-edge 9 8)
+        (make-edge 10 0) (make-edge 10 2) (make-edge 10 4)
+        (make-edge 10 6) (make-edge 10 8)
+        (make-edge 11 1) (make-edge 11 3) (make-edge 11 5)
+        (make-edge 11 7) (make-edge 11 9)))
 
 
 ;;
@@ -272,3 +305,89 @@
 ;!!! tests
 
 (define (icosphere->mesh i) MESH0) ;stub
+
+
+
+(@htdf subdivision-vertices)
+(@signature Natural -> (listof Vector))
+;; produces vertices of n-frequency subdivision of an icosahedron
+;; CONSTRAINT: n must be nonzero
+(check-expect (subdivision-vertices 1) ICOSAHEDRON-VERTICES)
+;!!! more tests
+
+(define (subdivision-vertices n) empty) ;stub
+
+
+
+(@htdf all-edge-vertices all-edge-vertices--acc)
+(@signature Natural -> (listof Vector))
+;; produce all edge vertices of n-frequency subdivision of an icosahedron
+;; CONSTRAINT: n must be nonzero
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (all-edge-vertices n)
+  (all-edge-vertices--acc n 11 empty))
+
+(@template-origin Natural accumulator)
+
+(define (all-edge-vertices--acc n vert rsf)
+  (cond [(zero? vert)
+         rsf]
+        [else
+         (all-edge-vertices--acc n (sub1 vert)
+                                 (append (incident-vertices n vert) rsf))]))
+
+
+
+(@htdf incident-vertices incident-vertices--acc)
+(@signature Natural -> (listof Vector))
+;; produce vertices on edges incident on vert from a vertex of lower index
+;; CONSTRAINT: n must be nonzero
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (incident-vertices n vert)
+  (incident-vertices--acc n vert (sub1 vert) empty))
+
+(@template-origin Natural accumulator)
+
+(define (incident-vertices--acc n vert other rsf)
+  (cond [(zero? other)
+         (append (edge-vertices n
+                                (first ICOSAHEDRON-VERTICES)
+                                (list-ref ICOSAHEDRON-VERTICES vert))
+                 rsf)]
+        [else
+         (incident-vertices--acc
+          n vert (sub1 other)
+          (append (edge-vertices n
+                                 (list-ref ICOSAHEDRON-VERTICES other)
+                                 (list-ref ICOSAHEDRON-VERTICES vert))
+                  rsf))]))
+
+
+
+(@htdf edge-vertices edge-vertices--acc)
+(@signature Natural Vector Vector -> (listof Vector))
+;; produce all vertices on the edge between the two given vertices
+;; CONSTRAINT: n must be nonzero
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (edge-vertices n v0 v1)
+  (edge-vertices--acc n v0 v1 (sub1 n) empty))
+
+(@template-origin Natural accumulator)
+
+(define (edge-vertices--acc n v0 v1 current rsf)
+  (cond [(zero? current)
+         rsf]
+        [else
+         (edge-vertices--acc
+          n v0 v1 (sub1 current)
+          (cons (scalar-divide (add (scalar-multiply v0 (- n current))
+                                    (scalar-multiply v1 current)) n) rsf))]))
