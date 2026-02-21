@@ -4,7 +4,7 @@
 (require spd/tags)
 
 (require "provide.rkt")
-(provide (all-defined-out))
+(provide (matching-identifiers-out #rx"^((?!--).)*$" (all-defined-out)))
 
 (require "common.rkt")
 (@htdd Colour Vector Euler Triangle)
@@ -219,7 +219,7 @@
 (define-struct edge (v0 v1))
 ;; Edge is (make-edge Natural Natural)
 ;; interp. the indices, in ICOSAHEDRON-VERTICES, of the two vertices defining
-;;         the edge of an icosahedron
+;;         an edge of an icosahedron
 (define EDGE1 (make-edge 0 1))  ;valid edge
 (define EDGE2 (make-edge 10 4)) ;another valid edge
 (define EDGE3 (make-edge 10 7)) ;"invalid" edge
@@ -229,6 +229,25 @@
 (define (fn-for-edge e)
   (... (edge-v0 e)   ;Natural
        (edge-v1 e))) ;Natural
+
+
+
+(@htdd Face)
+(define-struct face (v0 v1 v2))
+;; Face is (make-face Natural Natural Natural)
+;; interp. the indices, in ICOSAHEDRON-VERTICES, of the three vertices defining
+;;         a face of an icosahedron
+(define FACE1 (make-face 4 3 2))  ;valid face
+(define FACE2 (make-face 8 6 10)) ;another valid face
+(define FACE3 (make-face 0 8 2))  ;"invalid" face
+(define FACE4 (make-face 1 8 11)) ;"invalid" face
+
+(@dd-template-rules compound) ;3 fields
+
+(define (fn-for-face f)
+  (... (face-v0 f)   ;Natural
+       (face-v1 f)   ;Natural
+       (face-v2 f))) ;Natural
 
 
 ;;
@@ -258,16 +277,16 @@
         (make-vector 0 1 0)
         (make-vector 0 -1 0)))
 
-(define ICOSAHDRON-ELEMENTS
-  (list (make-element 8 0 9) (make-element 9 1 0)
-        (make-element 0 2 1) (make-element 1 3 2)
-        (make-element 2 4 3) (make-element 3 5 4)
-        (make-element 4 6 5) (make-element 5 7 6)
-        (make-element 6 8 7) (make-element 7 9 8)
-        (make-element 0 10 2) (make-element 2 10 4) (make-element 4 10 6)
-        (make-element 6 10 8) (make-element 8 10 0)
-        (make-element 1 11 3) (make-element 3 11 5) (make-element 5 11 7)
-        (make-element 7 11 9) (make-element 9 11 1)))
+(define ICOSAHEDRON-FACES
+  (list (make-face 0 9 8) (make-face 1 0 9)
+        (make-face 2 1 0) (make-face 3 2 1)
+        (make-face 4 3 2) (make-face 5 4 3)
+        (make-face 6 5 4) (make-face 7 6 5)
+        (make-face 8 7 6) (make-face 9 8 7)
+        (make-face 10 2 0) (make-face 10 4 2) (make-face 10 6 4)
+        (make-face 10 8 6) (make-face 10 0 8)
+        (make-face 11 3 1) (make-face 11 5 3) (make-face 11 7 5)
+        (make-face 11 9 7) (make-face 11 1 9)))
 
 (define ICOSAHEDRON-EDGES
   (list (make-edge 0 8) (make-edge 0 9) (make-edge 1 9) (make-edge 1 0)
@@ -313,12 +332,15 @@
 
 (@htdf subdivision-vertices)
 (@signature Natural -> (listof Vector))
-;; produces vertices of n-frequency subdivision of an icosahedron
+;; produce vertices of n-frequency subdivision of an icosahedron
 ;; CONSTRAINT: n must be nonzero
-#;(check-within (subdivision-vertices 1) ICOSAHEDRON-VERTICES DELTA)
+(check-within (subdivision-vertices 1) ICOSAHEDRON-VERTICES DELTA)
 ;!!! more tests
 
-(define (subdivision-vertices n) empty) ;stub
+(@template-origin Natural)
+
+(define (subdivision-vertices n)
+  (append ICOSAHEDRON-VERTICES (all-edge-vertices n) (all-internal-vertices n)))
 
 
 
@@ -336,13 +358,13 @@
 (@template-origin (listof Edge) accumulator)
 
 ;; edges is (listof Edge)
-;; INVARIANT: the list of edges for which vertices have not yet been generated
+;; INVARIANT: the list of edges for which vertices remain to be generated
 ;;
 ;; rsf is (listof Vector)
 ;; INVARIANT: the list of all vertices generated so far
 (define (all-edge-vertices--acc n edges rsf)
   (cond [(empty? edges)
-         rsf]
+         (reverse rsf)]
         [else
          (all-edge-vertices--acc
           n (rest edges)
@@ -390,6 +412,89 @@
           n v0 v1 (sub1 next)
           (cons (scalar-divide (add (scalar-multiply v1 (- n next))
                                     (scalar-multiply v0 next)) n) rsf))]))
+
+
+
+(@htdf all-internal-vertices all-internal-vertices--acc)
+(@signature Natural -> (listof Vector))
+;; produce all internal vertices of n-frequency subdivision of an icosahedron
+;; CONSTRAINT: n must be nonzero
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (all-internal-vertices n)
+  (all-internal-vertices--acc n ICOSAHEDRON-FACES empty))
+
+(@template-origin (listof Face) accumulator)
+
+;; faces is (listof Face)
+;; INVARIANT: the list of faces for which vertices remain to be generated
+;;
+;; rsf is (listof Vector)
+;; INVARIANT: the list of all vertices generated so far
+(define (all-internal-vertices--acc n faces rsf)
+  (cond [(empty? faces)
+         (reverse rsf)]
+        [else
+         (all-internal-vertices--acc
+          n (rest faces) (append (internal-vertices n (first faces)) rsf))]))
+
+
+
+(@htdf internal-vertices)
+(@signature Natural Face -> (listof Vector))
+;; produce all non-edge vertices from subdividing given face
+;; CONSTRAINT: n must be nonzero
+;!!! tests
+
+(@template-origin Face)
+
+(define (internal-vertices n f)
+  (edge-combinations n
+                     (vertex-combinations n
+                                          (get-vertex (face-v2 f))
+                                          (get-vertex (face-v0 f)))
+                     (vertex-combinations n
+                                          (get-vertex (face-v1 f))
+                                          (get-vertex (face-v0 f)))))
+
+
+
+(@htdf edge-combinations edge-combinations--acc)
+(@signature Natural (listof Vector) (listof Vector) -> (listof Vector))
+;; produce non-edge vertices as linear combinations of the given edge vertices
+;; CONSTRAINT: n must be nonzero; length of both lists must be n-1
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (edge-combinations n e0 e1)
+  (edge-combinations--acc n e0 e1 (sub1 n) empty))
+
+(@template-origin Natural accumulator)
+
+;; e0 is (listof Vector)
+;; INVARIANT: the list of vertices on the first edge for which linear
+;;            combinations remain to be generated
+;;
+;; e1 is (listof Vector)
+;; INVARIANT: the list of vertices on the second edge for which linear
+;;            combinations remain to be generated
+;;
+;; count is Natural
+;; INVARIANT: equal to both (length e0) and (length e1)
+;;
+;; rsf is (listof Vector)
+;; INVARIANT: the list of all vertices generated so far
+(define (edge-combinations--acc n e0 e1 count rsf)
+  (cond [(zero? count)
+         rsf]
+        [else
+         (edge-combinations--acc
+          n (rest e0) (rest e1) (sub1 count)
+          (append (vertex-combinations (- n count) (first e0) (first e1))
+                  rsf))]))
 
 
 
