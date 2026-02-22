@@ -168,22 +168,19 @@
 
 
 (@htdd Mesh)
-(define-struct mesh (vertices elements count))
-;; Mesh is (make-mesh VertexBuffer ElementBuffer Natural)
-;; interp. the unique vertices and triangular elements of a mesh,
-;;         and its vertex count
-;; CONSTRAINT: count must be equal to (length vertices)
-(define MESH0 (make-mesh empty empty 0))
-(define MESH1 (make-mesh VBUF1 EBUF1 (length VBUF1)))
+(define-struct mesh (vertices elements))
+;; Mesh is (make-mesh VertexBuffer ElementBuffer)
+;; interp. the unique vertices and triangular elements of a mesh
+(define MESH0 (make-mesh empty empty))
+(define MESH1 (make-mesh VBUF1 EBUF1))
 
-(@dd-template-rules compound ;3 fields
+(@dd-template-rules compound ;2 fields
                     ref      ;(mesh-vertices Mesh) is VertexBuffer
                     ref)     ;(mesh-elements Mesh) is ElementBuffer
 
 (define (fn-for-mesh m)
   (... (fn-for-vbuf (mesh-vertices m))
-       (fn-for-ebuf (mesh-elements m))
-       (mesh-count m)))
+       (fn-for-ebuf (mesh-elements m))))
 
 
 
@@ -231,25 +228,6 @@
        (edge-v1 e))) ;Natural
 
 
-
-(@htdd Face)
-(define-struct face (v0 v1 v2))
-;; Face is (make-face Natural Natural Natural)
-;; interp. the indices, in ICOSAHEDRON-VERTICES, of the three vertices defining
-;;         a face of an icosahedron
-(define FACE1 (make-face 4 3 2))  ;valid face
-(define FACE2 (make-face 8 6 10)) ;another valid face
-(define FACE3 (make-face 0 8 2))  ;"invalid" face
-(define FACE4 (make-face 1 8 11)) ;"invalid" face
-
-(@dd-template-rules compound) ;3 fields
-
-(define (fn-for-face f)
-  (... (face-v0 f)   ;Natural
-       (face-v1 f)   ;Natural
-       (face-v2 f))) ;Natural
-
-
 ;;
 ;; CONSTANTS
 ;;
@@ -278,15 +256,15 @@
         (make-vector 0 -1 0)))
 
 (define ICOSAHEDRON-FACES
-  (list (make-face 0 9 8) (make-face 1 0 9)
-        (make-face 2 1 0) (make-face 3 2 1)
-        (make-face 4 3 2) (make-face 5 4 3)
-        (make-face 6 5 4) (make-face 7 6 5)
-        (make-face 8 7 6) (make-face 9 8 7)
-        (make-face 10 2 0) (make-face 10 4 2) (make-face 10 6 4)
-        (make-face 10 8 6) (make-face 10 0 8)
-        (make-face 11 3 1) (make-face 11 5 3) (make-face 11 7 5)
-        (make-face 11 9 7) (make-face 11 1 9)))
+  (list (make-element 0 9 8) (make-element 1 0 9)
+        (make-element 2 1 0) (make-element 3 2 1)
+        (make-element 4 3 2) (make-element 5 4 3)
+        (make-element 6 5 4) (make-element 7 6 5)
+        (make-element 8 7 6) (make-element 9 8 7)
+        (make-element 10 2 0) (make-element 10 4 2) (make-element 10 6 4)
+        (make-element 10 8 6) (make-element 10 0 8)
+        (make-element 11 3 1) (make-element 11 5 3) (make-element 11 7 5)
+        (make-element 11 9 7) (make-element 11 1 9)))
 
 (define ICOSAHEDRON-EDGES
   (list (make-edge 0 8) (make-edge 0 9) (make-edge 1 9) (make-edge 1 0)
@@ -331,7 +309,7 @@
 
 
 (@htdf subdivision-vertices)
-(@signature Natural -> (listof Vector))
+(@signature Natural -> VertexBuffer)
 ;; produce vertices of n-frequency subdivision of an icosahedron
 ;; CONSTRAINT: n must be nonzero
 (check-within (subdivision-vertices 1) ICOSAHEDRON-VERTICES DELTA)
@@ -426,9 +404,9 @@
 (define (all-internal-vertices n)
   (all-internal-vertices--acc n ICOSAHEDRON-FACES empty))
 
-(@template-origin (listof Face) accumulator)
+(@template-origin (listof Element) accumulator)
 
-;; faces is (listof Face)
+;; faces is (listof Element)
 ;; INVARIANT: the list of faces for which vertices remain to be generated
 ;;
 ;; rsf is (listof Vector)
@@ -443,21 +421,21 @@
 
 
 (@htdf internal-vertices)
-(@signature Natural Face -> (listof Vector))
+(@signature Natural Element -> (listof Vector))
 ;; produce all non-edge vertices from subdividing given face
 ;; CONSTRAINT: n must be nonzero
 ;!!! tests
 
-(@template-origin Face)
+(@template-origin Element)
 
 (define (internal-vertices n f)
   (edge-combinations n
                      (vertex-combinations n
-                                          (get-vertex (face-v2 f))
-                                          (get-vertex (face-v0 f)))
+                                          (get-vertex (element-v2 f))
+                                          (get-vertex (element-v0 f)))
                      (vertex-combinations n
-                                          (get-vertex (face-v1 f))
-                                          (get-vertex (face-v0 f)))))
+                                          (get-vertex (element-v1 f))
+                                          (get-vertex (element-v0 f)))))
 
 
 
@@ -509,3 +487,195 @@
 
 (define (get-vertex index)
   (list-ref ICOSAHEDRON-VERTICES index))
+
+
+
+(@htdf subdivision-elements subdivision-elements--acc)
+(@signature Natural -> ElementBuffer)
+;; produce the elements corresponding to (subdivision-vertices n)
+;; CONSTRAINT: n must be nonzero
+(check-expect (subdivision-elements 1) ICOSAHEDRON-ELEMENTS)
+;!!! more tests
+
+(@template-origin accumulator)
+
+(define (subdivision-elements n)
+  (if (= n 1)
+      ICOSAHEDRON-ELEMENTS
+      (subdivision-elements--acc n ICOSAHEDRON-FACES empty)))
+
+(@template-origin (listof Element) accumulator)
+
+;; faces is (listof Element)
+;; INVARIANT: the list of faces for which vertices remain to be generated
+;;
+;; rsf is (listof Vector)
+;; INVARIANT: the list of all vertices generated so far
+(define (subdivision-elements--acc n faces rsf)
+  (cond [(empty? faces)
+         rsf]
+        [else
+         (subdivision-elements--acc
+          n (rest faces)
+          (append (face->elements n (first faces)) rsf))]))
+
+
+
+(@htdf face->elements)
+(@signature Natural Element -> (listof Element))
+;; produce the elements of the n-frequency subdivision of the given face
+;; CONSTRAINT: n must be greater than 1
+;!!! tests
+
+(@template-origin Face)
+
+(define (face-elements n f)
+  (offsets->elements n (element-v0 f) (element-v1 f) (element-v2 f)
+                     (get-edge-offset n (element-v0 f) (element-v1 f))
+                     (get-edge-offset n (element-v0 f) (element-v2 f))
+                     (get-edge-offset n (element-v1 f) (element-v2 f))
+                     (get-internal-offset n
+                                          (element-v0 f)
+                                          (element-v1 f)
+                                          (element-v2 f))))
+
+
+
+(@htdf get-edge-offset)
+(@signature Natural Natural Natural -> Natural)
+;; produce the index of the first nonterminal vertex on the given edge
+;; CONSTRAINT: n must be nonzero
+;!!! tests
+
+(@template-origin Natural)
+
+(define (get-edge-offset n v0 v1)
+  (cond [(= v0 10)
+         (+ 20 (* (sub1 n) (+ 20 (/ v1 2))))]
+        [(= v0 11)
+         (+ 20 (* (sub1 n) (+ 25 (/ (sub1 v1) 2))))]
+        [else
+         (+ 20 (* (sub1 n) (+ (* 2 v0) (- 2 (modulo (- v0 v1) 10)))))]))
+
+
+
+(@htdf get-internal-offset)
+(@signature Natural Natural Natural Natural -> Natural)
+;; produce the index of the first internal vertex of the given face
+;; CONSTRAINT: n must be nonzero
+;!!! tests
+
+(@template-origin Natural)
+
+(define (get-internal-offset n v0 v1 v2)
+  (cond [(= v0 10)
+         (+ 20 (* (sub1 n) 30) (* (triangular (- n 2)) (+ 10 (/ v2 2))))]
+        [(= v0 11)
+         (+ 20 (* (sub1 n) 30) (* (triangular (- n 2)) (+ 15 (/ (sub1 v2) 2))))]
+        [else
+         (+ 20 (* (sub1 n) 30) (* (triangular (- n 2)) v0))]))
+
+
+
+(@htdf offsets->elements)
+(@signature Natural Natural Natural Natural
+            Natural Natural Natural Natural -> (listof Element))
+;; produce the elements of the subdivision given the index offsets of all edges
+;; CONSTRAINT: n must be greater than 1
+;!!! tests
+
+(@template-origin Natural)
+
+(define (offsets->elements n v0 v1 v2 e0 e1 e2 int)
+  (if (= n 2)
+      (list (make-element v0 e0 e1)
+            (make-element e0 v1 e2)
+            (make-element e1 e2 v2)
+            (make-element e0 e1 e2))
+      (append (list (make-element v0 e0 e1)
+                    (make-element (+ e0 n -2) v1 e2)
+                    (make-element (+ e1 n -2) (+ e2 n -2) v2)
+                    (make-element e0 e1 int)
+                    (make-element (+ e0 n -2) (+ int (triangular (- n 3))) e2)
+                    (make-element (+ int (triangular (- n 2)) -1)
+                                  (+ e1 n -2) (+ e2 n -2)))
+              (edge-elements n v0 v1 v2 e0 e1 e2 int)
+              ;!!! generate internal elements
+              )))
+
+
+
+(@htdf edge-elements)
+(@signature Natural Natural Natural Natural
+            Natural Natural Natural Natural -> (listof Element))
+;; produce the edge elements of the subdivided icosahedron
+;; CONSTRAINT: n must be greater than 2
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (edge-elements n v0 v1 v2 e0 e1 e2 int)
+  (edge-elements--acc (- n 3) v0 v1 v2 e0 e1 e2 int empty))
+
+(@template-origin Natural accumulator)
+
+;; count is Natural
+;; INVARIANT: the number of elements parallel to the face that remain to be
+;;            generated (this is one more than the number of antiparallel ones)
+;;
+;; rsf is (listof Element)
+;; INVARIANT: the list of all elements generated so far
+(define (edge-elements--acc count v0 v1 v2 e0 e1 e2 int rsf)
+  (cond [(zero? count)
+         (append (list (make-element v0 (add1 v0) int)
+                       (make-element v1 int (add1 v1))
+                       (make-element (+ int (triangular (- n 3))) v2 (add1 v2)))
+                 rsf)]
+        [else
+         (edge-elements--acc
+          (sub1 count) v0 v1 v2 e0 e1 e2 int
+          (append (list (make-element (+ v0 count) (+ v0 count 1)
+                                      (+ int (triangular count)))
+                        (make-element (+ v1 count)
+                                      (+ int (triangular (add1 count)) -1)
+                                      (+ v1 count 1))
+                        (make-element (+ int (triangular (- n 3)) count)
+                                      (+ v2 count) (+ v2 count 1))
+                        (make-element (+ v0 count)
+                                      (+ int (triangular count) -1)
+                                      (+ int (triangular count)))
+                        (make-element (+ int (triangular count) -1)
+                                      (+ v1 count)
+                                      (+ int (triangular (add1 count)) -1))
+                        (make-element (+ int (triangular (- n 3)) count -1)
+                                      (+ int (triangular (- n 3)) count)
+                                      (+ v2 count))) rsf))]))
+
+
+
+(@htdf triangular triangular--acc)
+(@signature Natural -> Natural)
+;; produce the nth triangular number T_n=0+1+2+...+n
+(check-expect (triangular 0)   0)
+(check-expect (triangular 1)   1)
+(check-expect (triangular 3)   6)
+(check-expect (triangular 100) 5050)
+
+(@template-origin accumulator)
+
+(define (triangular n)
+  (triangular--acc n 0))
+
+(@template-origin Natural accumulator)
+
+;; n is Natural
+;; INVARIANT: the next number to be added
+;;
+;; rsf is Natural
+;; INVARIANT: the sum of all numbers between the current value of n (exclusive)
+;;            and the original value of n (inclusive)
+(define (triangular--acc n rsf)
+  (cond [(zero? n)
+         rsf]
+        [else
+         (triangular--acc (sub1 n) (+ rsf n))]))

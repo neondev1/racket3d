@@ -9,13 +9,13 @@ racket3d requires [Racket](https://download.racket-lang.org/) to run.
 Due to the use of SPD metadata tags, the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt) is needed to run racket3d. Two options are available:
 
 1. Installing the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt). This can be done in DrRacket (File > Install Package...) with the URL above or via command line:
-```
+```bash
 curl https://cs110.students.cs.ubc.ca/spd.plt > spd.plt
 raco setup -A spd.plt
 ```
 
 2. Commenting out all SPD tags. This can be done via command line from the racket3d directory:
-```
+```bash
 # For GNU sed (most systems):
 sed -i -e 's/(@/#;\n(@/g' src/*.rkt
 # For BSD sed (MacOS):
