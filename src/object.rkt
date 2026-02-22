@@ -551,11 +551,11 @@
 
 (define (get-edge-offset n v0 v1)
   (cond [(= v0 10)
-         (+ 20 (* (sub1 n) (+ 20 (/ v1 2))))]
+         (+ 12 (* (sub1 n) (+ 20 (/ v1 2))))]
         [(= v0 11)
-         (+ 20 (* (sub1 n) (+ 25 (/ (sub1 v1) 2))))]
+         (+ 12 (* (sub1 n) (+ 25 (/ (sub1 v1) 2))))]
         [else
-         (+ 20 (* (sub1 n) (+ (* 2 v0) (- 2 (modulo (- v0 v1) 10)))))]))
+         (+ 12 (* (sub1 n) (+ (* 2 v0) (- 2 (modulo (- v0 v1) 10)))))]))
 
 
 
@@ -569,11 +569,11 @@
 
 (define (get-internal-offset n v0 v1 v2)
   (cond [(= v0 10)
-         (+ 20 (* (sub1 n) 30) (* (triangular (- n 2)) (+ 10 (/ v2 2))))]
+         (+ 12 (* (sub1 n) 30) (* (triangular (- n 2)) (+ 10 (/ v2 2))))]
         [(= v0 11)
-         (+ 20 (* (sub1 n) 30) (* (triangular (- n 2)) (+ 15 (/ (sub1 v2) 2))))]
+         (+ 12 (* (sub1 n) 30) (* (triangular (- n 2)) (+ 15 (/ (sub1 v2) 2))))]
         [else
-         (+ 20 (* (sub1 n) 30) (* (triangular (- n 2)) v0))]))
+         (+ 12 (* (sub1 n) 30) (* (triangular (- n 2)) v0))]))
 
 
 
