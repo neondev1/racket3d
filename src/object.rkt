@@ -494,14 +494,14 @@
 (@signature Natural -> ElementBuffer)
 ;; produce the elements corresponding to (subdivision-vertices n)
 ;; CONSTRAINT: n must be nonzero
-(check-expect (subdivision-elements 1) ICOSAHEDRON-ELEMENTS)
+(check-expect (subdivision-elements 1) ICOSAHEDRON-FACES)
 ;!!! more tests
 
 (@template-origin accumulator)
 
 (define (subdivision-elements n)
   (if (= n 1)
-      ICOSAHEDRON-ELEMENTS
+      ICOSAHEDRON-FACES
       (subdivision-elements--acc n ICOSAHEDRON-FACES empty)))
 
 (@template-origin (listof Element) accumulator)
@@ -527,9 +527,9 @@
 ;; CONSTRAINT: n must be greater than 1
 ;!!! tests
 
-(@template-origin Face)
+(@template-origin Element)
 
-(define (face-elements n f)
+(define (face->elements n f)
   (offsets->elements n (element-v0 f) (element-v1 f) (element-v2 f)
                      (get-edge-offset n (element-v0 f) (element-v1 f))
                      (get-edge-offset n (element-v0 f) (element-v2 f))
@@ -600,12 +600,11 @@
                     (make-element (+ int (triangular (- n 2)) -1)
                                   (+ e1 n -2) (+ e2 n -2)))
               (edge-elements n v0 v1 v2 e0 e1 e2 int)
-              ;!!! generate internal elements
-              )))
+              (internal-elements n int))))
 
 
 
-(@htdf edge-elements)
+(@htdf edge-elements edge-elements--acc)
 (@signature Natural Natural Natural Natural
             Natural Natural Natural Natural -> (listof Element))
 ;; produce the edge elements of the subdivided icosahedron
@@ -615,17 +614,17 @@
 (@template-origin accumulator)
 
 (define (edge-elements n v0 v1 v2 e0 e1 e2 int)
-  (edge-elements--acc (- n 3) v0 v1 v2 e0 e1 e2 int empty))
+  (edge-elements--acc n (- n 3) v0 v1 v2 e0 e1 e2 int empty))
 
 (@template-origin Natural accumulator)
 
 ;; count is Natural
-;; INVARIANT: the number of elements parallel to the face that remain to be
-;;            generated (this is one more than the number of antiparallel ones)
+;; INVARIANT: the number of elements parallel to the face that remain to
+;;            be generated (one more than the number of antiparallel ones)
 ;;
 ;; rsf is (listof Element)
 ;; INVARIANT: the list of all elements generated so far
-(define (edge-elements--acc count v0 v1 v2 e0 e1 e2 int rsf)
+(define (edge-elements--acc n count v0 v1 v2 e0 e1 e2 int rsf)
   (cond [(zero? count)
          (append (list (make-element v0 (add1 v0) int)
                        (make-element v1 int (add1 v1))
@@ -633,7 +632,7 @@
                  rsf)]
         [else
          (edge-elements--acc
-          (sub1 count) v0 v1 v2 e0 e1 e2 int
+          n (sub1 count) v0 v1 v2 e0 e1 e2 int
           (append (list (make-element (+ v0 count) (+ v0 count 1)
                                       (+ int (triangular count)))
                         (make-element (+ v1 count)
@@ -650,6 +649,99 @@
                         (make-element (+ int (triangular (- n 3)) count -1)
                                       (+ int (triangular (- n 3)) count)
                                       (+ v2 count))) rsf))]))
+
+
+
+(@htdf internal-elements internal-elements--acc)
+(@signature Natural Natural -> (listof Element))
+;; produce the internal elements of the subdivided icosahedron
+;; CONSTRAINT: n must be greater than 2
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (internal-elements n int)
+  (if (= n 3)
+      empty
+      (internal-elements--acc (- n 4) int empty)))
+
+(@template-origin Natural accumulator)
+
+;; count is Natural
+;; INVARIANT: the number of rows of elements parallel to the face that remain to
+;;            be generated (one more than the number of antiparallel ones)
+;;
+;; rsf is (listof Element)
+;; INVARIANT: the list of all elements generated so far
+(define (internal-elements--acc count int rsf)
+  (cond [(zero? count)
+         (append (parallel-row 0 int) rsf)]
+        [else
+         (internal-elements--acc
+          (sub1 count) int (append (parallel-row count int)
+                                   (antiparallel-row (sub1 count) int) rsf))]))
+
+
+
+(@htdf parallel-row parallel-row--acc)
+(@signature Natural Natural -> (listof Element))
+;; produce the specified row of elements parallel to the icosahedron face
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (parallel-row row int)
+  (parallel-row--acc row row int empty))
+
+(@template-origin Natural accumulator)
+
+;; count is Natural
+;; INVARIANT: the number of elements that remain to be generated
+;;
+;; rsf is (listof Element)
+;; INVARIANT: the list of all elements generated so far
+(define (parallel-row--acc row count int rsf)
+  (cond [(zero? count)
+         (cons (make-element (+ int (triangular row))
+                             (+ int (triangular (add1 row)))
+                             (+ int (triangular (add1 row)) 1)) rsf)]
+        [else
+         (parallel-row--acc
+          row (sub1 count) int
+          (cons (make-element (+ int (triangular row) count)
+                              (+ int (triangular (add1 row)) count)
+                              (+ int (triangular (add1 row)) count 1)) rsf))]))
+
+
+
+(@htdf antiparallel-row antiparallel-row--acc)
+(@signature Natural Natural -> (listof Element))
+;; produce the specified row of elements antiparallel to the icosahedron face
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (antiparallel-row row int)
+  (antiparallel-row--acc row row int empty))
+
+(@template-origin Natural accumulator)
+
+;; count is Natural
+;; INVARIANT: the number of elements that remain to be generated
+;;
+;; rsf is (listof Element)
+;; INVARIANT: the list of all elements generated so far
+(define (antiparallel-row--acc row count int rsf)
+  (cond [(zero? count)
+         (cons (make-element (+ int (triangular (add1 row)))
+                             (+ int (triangular (add1 row)) 1)
+                             (+ int (triangular (+ row 2)) 1)) rsf)]
+        [else
+         (parallel-row--acc
+          row (sub1 count) int
+          (cons (make-element (+ int (triangular (add1 row)) count)
+                              (+ int (triangular (add1 row)) count 1)
+                              (+ int (triangular (+ row 2)) count 1)) rsf))]))
 
 
 
