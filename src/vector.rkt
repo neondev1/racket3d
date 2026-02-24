@@ -345,6 +345,50 @@
 
 
 
+(@htdf plane->row plane->row--acc)
+(@signature Plane -> Row)
+;; produce row of augmented matrix representing given plane in R^3
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (plane->row p)
+  (plane->row--acc (list (plane-a p) (plane-b p) (plane-c p) (plane-d p))))
+
+(@template-origin Row accumulator)
+
+(define (plane->row--acc r)
+  (cond [(empty? r)
+         (error "Invalid plane given")]
+        [else
+         (if (zero? (first r))
+             (plane->row--acc (rest r))
+             r)]))
+
+
+
+(@htdf rows->line)
+(@signature Row Row -> Line)
+;; produce parametric line given a 4x2 augmented matrix (split into two rows)
+;; CONSTRAINT: the matrix with given rows must be in reduced row echelon form
+;!!! tests
+
+(@template-origin Row) ;treating Row as compound data here
+;                      ;impossible to implement this otherwise
+
+(define (rows->line r0 r1)
+  (cond [(= (length r0) 3) ;first column is nonpivot (x free)
+         (make-parametric (make-vector 0 (third r0) (second r1))
+                          (make-vector 1 0 0))]
+        [(= (length r1) 2) ;second column is nonpivot (y free)
+         (make-parametric (make-vector (fourth r0) 0 (second r1))
+                          (make-vector 0 1 0))]
+        [else              ;third column is nonpivot (z free)
+         (make-parametric (make-vector (fourth r0) (third r1) 0)
+                          (make-vector (- (third r0)) (- (second r1)) 1))]))
+
+
+
 (@htdf normalize normalize--acc)
 (@signature Row -> Row)
 ;; produce row divided by its first nonzero element
@@ -375,7 +419,7 @@
 (@signature Row Row -> Row)
 ;; produce the first row minus the second row
 ;; CONSTRAINT: both rows must represent valid planes in R^3;
-;;             the first row must be longer than the second
+;;             the first row must be at least as long as the second
 ;!!! tests
 
 (@template-origin accumulator)
