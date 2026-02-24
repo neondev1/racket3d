@@ -49,7 +49,6 @@ If you don't know what SPD refers to, you probably don't need to worry about any
   even though generic types are not part of SPD.
 - As `local` is not available in BSL, inner functions with accumulators are defined at the top level with the suffix `--acc` as needed.
   The `@template-origin` of the outer function is simply listed as `accumulator`.
-- `@template`s are not included for `fn-composition` as they are effectively redundant.
 
 ### Other style information
 

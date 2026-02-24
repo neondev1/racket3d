@@ -345,25 +345,15 @@
 
 
 
-(@htdf plane->row plane->row--acc)
+(@htdf plane->row)
 (@signature Plane -> Row)
 ;; produce row of augmented matrix representing given plane in R^3
 ;!!! tests
 
-(@template-origin accumulator)
+(@template-origin Plane)
 
 (define (plane->row p)
-  (plane->row--acc (list (plane-a p) (plane-b p) (plane-c p) (plane-d p))))
-
-(@template-origin Row accumulator)
-
-(define (plane->row--acc r)
-  (cond [(empty? r)
-         (error "Invalid plane given")]
-        [else
-         (if (zero? (first r))
-             (plane->row--acc (rest r))
-             r)]))
+  (trim-zeros (list (plane-a p) (plane-b p) (plane-c p) (plane-d p))))
 
 
 
@@ -386,6 +376,24 @@
         [else              ;third column is nonpivot (z free)
          (make-parametric (make-vector (fourth r0) (third r1) 0)
                           (make-vector (- (third r0)) (- (second r1)) 1))]))
+
+
+
+(@htdf trim-zeros)
+(@signature (listof Number) -> Row)
+;; converts a list of numbers to a row by trimming all leading zeros
+;; CONSTRAINT: the list must contain at least one nonzero number
+;!!! tests
+
+(@template-origin (listof Number))
+
+(define (trim-zeros lon)
+  (cond [(empty? lon)
+         (error "Invalid plane given")]
+        [else
+         (if (zero? (first lon))
+             (trim-zeros (rest lon))
+             lon)]))
 
 
 
@@ -425,12 +433,12 @@
 (@template-origin accumulator)
 
 (define (eliminate r0 r1)
-  (append (take r0 (- (length r0) (length r1)))
-          (eliminate--acc
-           (drop r0 (- (length r0) (length r1))) r1
-           (/ (first (drop r0 (- (length r0) (length r1))))
-              (first r1))
-           empty)))
+  (trim-zeros (append (take r0 (- (length r0) (length r1)))
+                      (eliminate--acc
+                       (drop r0 (- (length r0) (length r1))) r1
+                       (/ (first (drop r0 (- (length r0) (length r1))))
+                          (first r1))
+                       empty))))
 
 (@template-origin Row accumulator)
 
