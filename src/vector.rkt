@@ -338,10 +338,25 @@
 
 
 
-#;(@htdf plane-intersect)
+(@htdf plane-intersect plane-intersect--acc)
 (@signature Plane Plane -> Line)
 ;; produce parametric line of intersection between two planes
 ;; CONSTRAINT: planes must be nonparallel
+
+(@template-origin accumulator)
+
+(define (plane-intersect p0 p1)
+  (plane-intersect--acc (plane->row p0) (plane->row p1) 2))
+
+(@template-origin Natural accumulator)
+
+(define (plane-intersect--acc r0 r1 iters)
+  (cond [(zero? iters)
+         (rows->line (normalize r0) (normalize r1))]
+        [else
+         (if (= (length r0) (length r1))
+             (plane-intersect--acc r0 (eliminate r0 r1) (sub1 iters))
+             (plane-intersect--acc (eliminate r0 r1) r1 (sub1 iters)))]))
 
 
 
