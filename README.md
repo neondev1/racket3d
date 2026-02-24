@@ -37,7 +37,7 @@ Polygon culling may be added in the future to improve performance.
 
 If you don't know what SPD refers to, you probably don't need to worry about anything in this section.
 
-<details><summary>Design and style rules compliance information</summary>
+<details><summary>Design and style rule compliance information</summary>
 
 ### Major deviations
 

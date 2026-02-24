@@ -1,6 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-beginner-reader.ss" "lang")((modname vector) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname vector) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
 (require spd/tags)
 (require 2htdp/image)
 
@@ -25,13 +25,14 @@
 (@htdd Plane)
 (define-struct plane (a b c d))
 ;; Plane is (make-plane Number Number Number Number)
-;; interp. a plane in Cartesian form, i.e. in the form ax+by+cz=d
+;; interp. a plane in Cartesian form, i.e. ax+by+cz=d
+;;         or the augmented matrix [a b c | d]
 ;; CONSTRAINT: at least one of a, b, c must be nonzero
 (define PLANE-XY (make-plane 0 0 1 0))         ;z=0, xy plane
 (define PLANE1 (make-plane 1 -2 -3 2))
 (define PLANE2 (make-plane 2 -1 -1 1))
 (define PLANE3 (make-plane -0.5 1.2 5.6 -2.4)) ;negative a and
-;                                                  ;d are allowed
+;                                              ;d are allowed
 
 (@dd-template-rules compound) ;4 fields
 
@@ -48,8 +49,8 @@
 ;; Line is (make-parametric Vector Vector)
 ;; interp. a line in vector parametric form
 ;; CONSTRAINT: direction vector must be nonzero
-(define LINE-X (make-parametric ZERO-VECTOR ;x-axis
-                                (make-vector 1 0 0)))
+(define LINE-Z (make-parametric ZERO-VECTOR ;z-axis
+                                (make-vector 0 0 1)))
 (define LINE1 (make-parametric VECTOR2 VECTOR3))
 
 (@dd-template-rules compound ;2 fields
@@ -59,6 +60,32 @@
 (define (fn-for-line l)
   (... (fn-for-vector (parametric-position l))
        (fn-for-vector (parametric-direction l))))
+
+
+
+(@htdd Row)
+;; Row is one of:
+;;  - empty
+;;  - (cons Number Row)
+;; interp. a row of a 2x4 augmented matrix, filled from right to left, with all
+;;         zero entries omitted; e.g. (list 1 2) represents the row [0 0 1 | 2]
+;; CONSTRAINT: (length Row) must be at most 4
+(define ROW0 (list        )) ;no pivots
+(define ROW1 (list       1)) ;inconsistent
+(define ROW2 (list 1 3 1 2))
+(define ROW3 (list     1 2))
+
+(@dd-template-rules one-of          ;2 cases
+                    atomic-distinct ;empty
+                    compound        ;(cons Number Row)
+                    self-ref)       ;(rest Row) is Row
+
+(define (fn-for-row r)
+  (cond [(empty? r)
+         (...)]
+        [else
+         (... (first r)
+              (fn-for-row (rest r)))]))
 
 
 ;;
@@ -308,6 +335,73 @@
   (= (/ (plane-a p0) (plane-a p1))
      (/ (plane-b p0) (plane-b p1))
      (/ (plane-c p0) (plane-c p1))))
+
+
+
+#;(@htdf plane-intersect)
+(@signature Plane Plane -> Line)
+;; produce parametric line of intersection between two planes
+;; CONSTRAINT: planes must be nonparallel
+
+
+
+(@htdf normalize normalize--acc)
+(@signature Row -> Row)
+;; produce row divided by its first nonzero element
+;; CONSTRAINT: the row must contain at least one nonzero number
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (normalize r)
+  (normalize--acc (rest r) (first r) (list 1)))
+
+(@template-origin Row accumulator)
+
+;; div is Number
+;; INVARIANT: the number by which the entire row is divided
+;;
+;; rsf is (listof Number)
+;; INVARIANT: all numbers normalized so far, in reverse row order
+(define (normalize--acc r div rsf)
+  (cond [(empty? r)
+         (reverse rsf)]
+        [else
+         (normalize--acc (rest r) div (cons (/ (first r) div) rsf))]))
+
+
+
+(@htdf eliminate eliminate--acc)
+(@signature Row Row -> Row)
+;; produce the first row minus the second row
+;; CONSTRAINT: both rows must represent valid planes in R^3;
+;;             the first row must be longer than the second
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (eliminate r0 r1)
+  (append (take r0 (- (length r0) (length r1)))
+          (eliminate--acc
+           (drop r0 (- (length r0) (length r1))) r1
+           (/ (first (drop r0 (- (length r0) (length r1))))
+              (first r1))
+           empty)))
+
+(@template-origin Row accumulator)
+
+;; ratio is (listof Number)
+;; INVARIANT: the ratio of the first component of the first row to the
+;;            first component of the second row
+;;
+;; rsf is (listof Number)
+;; INVARIANT: all components of the difference computed so far, in reverse order
+(define (eliminate--acc r0 r1 ratio rsf)
+  (cond [(empty? r0)
+         (reverse rsf)]
+        [else
+         (eliminate--acc (rest r0) (rest r1) ratio
+                         (cons (- (first r0) (* ratio (first r1))) rsf))]))
 
 
 ;; NOTE: EVERYTHING BEYOND THIS POINT IS BUGGY AND PROBABLY NEEDS REWRITING
