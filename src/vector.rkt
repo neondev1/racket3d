@@ -5,10 +5,13 @@
 (require 2htdp/image)
 
 (require "provide.rkt")
-(provide (all-defined-out))
+(provide (matching-identifiers-out #rx"^((?!--).)*$" (all-defined-out)))
 
 (require "common.rkt")
 (@htdd Colour Vector Euler Triangle)
+
+(require "matrix.rkt")
+(@htdd Matrix)
 
 ;;
 ;; VECTOR.rkt
@@ -342,11 +345,14 @@
 (@signature Plane Plane -> Line)
 ;; produce parametric line of intersection between two planes
 ;; CONSTRAINT: planes must be nonparallel
+;!!! tests
 
 (@template-origin accumulator)
 
 (define (plane-intersect p0 p1)
-  (plane-intersect--acc (plane->row p0) (plane->row p1) 2))
+  (if (>= (length (plane->row p0)) (length (plane->row p1)))
+      (plane-intersect--acc (plane->row p0) (plane->row p1) 2)
+      (plane-intersect--acc (plane->row p1) (plane->row p0) 2)))
 
 (@template-origin Natural accumulator)
 
@@ -374,7 +380,7 @@
 
 (@htdf rows->line)
 (@signature Row Row -> Line)
-;; produce parametric line given a 4x2 augmented matrix (split into two rows)
+;; produce parametric line given a 2x4 augmented matrix (split into two rows)
 ;; CONSTRAINT: the matrix with given rows must be in reduced row echelon form
 ;!!! tests
 
@@ -443,7 +449,8 @@
 ;; produce the first row minus the second row
 ;; CONSTRAINT: both rows must represent valid planes in R^3;
 ;;             the first row must be at least as long as the second
-;!!! tests
+(check-expect (eliminate (list 2 4 5 2) (list 1 2 3 -4)) (list -1 10))
+;!!! more tests
 
 (@template-origin accumulator)
 
@@ -471,265 +478,33 @@
                          (cons (- (first r0) (* ratio (first r1))) rsf))]))
 
 
-;; NOTE: EVERYTHING BEYOND THIS POINT IS BUGGY AND PROBABLY NEEDS REWRITING
-;;       Maybe use Gaussian elimination instead of hard-coding the calculations
 
-#|
-
-(@htdf plane-intersect)
-(@signature Plane Plane -> Line)
-;; produce parametric line of intersection between two planes
-;; CONSTRAINT: planes must be nonparallel
-#;
-(check-expect (plane-intersect (make-plane 1 0 0 1)
-                               (make-plane 0 0 1 1))
-              (make-parametric (make-vector 1 0 1)
-                             (make-vector 0 1 0)))
-(check-expect (plane-intersect PLANE1 PLANE2)
-              (make-parametric (make-vector 0 -1 0)
-                             (make-vector -1/3 -5/3 1)))
-
-;(define (plane-intersect p0 p1) LINE-X) ;stub
+(@htdf change-of-basis)
+(@signature Vector Vector -> Matrix)
+;; given a basis B={v0, v1}, produce the matrix from v to [v]_B for v in Span(B)
+;; CONSTRAINT: {v0, v1} must form a basis for a subspace of R^3 of dimension 2
+;!!! tests
 
 (@template-origin fn-composition)
 
-(define (plane-intersect p0 p1)
-  (intersect-other p0 p1 (intersect-first p0 p1 (intersect-denominator p0 p1))))
-
-
-;; NOTE: The following functions exist to reduce recomputation;
-;;       local is not used here as we are sticking to strict BSL.
-
-
-(@htdf intersect-first)
-(@signature Plane Plane Number Number -> Line)
-;; produce first component of incomplete line of intersection between two planes
-;!!! examples
-
-;(define (intersect-first p0 p1 d) LINE-X) ;stub
-
-(@template-origin Plane)
-
-(@template
- (define (intersect-first p0 p1 d)
-   (... (plane-a p0)
-        (plane-b p0)
-        (plane-c p0)
-        (plane-d p0)
-        (plane-a p1)
-        (plane-b p1)
-        (plane-c p1)
-        (plane-d p1)
-        d)))
-
-(define (intersect-first p0 p1 d)
-  (cond [(not (zero? d))
-         (make-parametric
-          (make-vector (/ (- (* (plane-d p0) (plane-b p1))
-                             (* (plane-d p1) (plane-b p0))) d)
-                       0 #i0)
-          (make-vector (/ (- (* (plane-b p0) (plane-c p1))
-                             (* (plane-b p1) (plane-c p0))) d)
-                       0 #i1))]
-        [(not (zero? (- (* (plane-a p0) (plane-c p1))
-                        (* (plane-a p1) (plane-c p0)))))
-         (make-parametric
-          (make-vector (/ (- (* (plane-d p0) (plane-c p1))
-                             (* (plane-d p1) (plane-c p0)))
-                          (- (* (plane-a p0) (plane-c p1))
-                             (* (plane-a p1) (plane-c p0))))
-                       #i0 0)
-          (make-vector (/ (- (* (plane-c p0) (plane-b p1))
-                             (* (plane-c p1) (plane-b p0)))
-                          (- (* (plane-a p0) (plane-c p1))
-                             (* (plane-a p1) (plane-c p0))))
-                       #i1 0))]
-        [else
-         (make-parametric
-          (make-vector #i0 0
-                       (/ (- (* (plane-d p0) (plane-b p1))
-                             (* (plane-d p1) (plane-b p0)))
-                          (- (* (plane-c p0) (plane-b p1))
-                             (* (plane-c p1) (plane-b p0)))))
-          (make-vector #i1 0
-                       (/ (- (* (plane-b p0) (plane-a p1))
-                             (* (plane-b p1) (plane-a p0)))
-                          (- (* (plane-c p0) (plane-b p1))
-                             (* (plane-c p1) (plane-b p0))))))]))
+(define (change-of-basis v0 v1)
+  (change-of-basis-r3 v0 v1 (cross-product v0 v1)))
 
 
 
-(@htdf intersect-denominator)
-(@signature Plane Plane -> Number)
-;; produce denominator of x component of line of intersection of given planes
-;!!! examples
+(@htdf change-of-basis-r3)
+(@signature Vector Vector Vector -> Matrix)
+;; given a basis B={v0, v1, v2}, produce the matrix from v to [v]_B for v in R^3
+;; CONSTRAINT: {v0, v1, v2} must span R^3
+;!!! tests
 
-(@template-origin Plane)
+(@template-origin Vector)
 
-(@template
- (define (intersect-denominator p0 p1)
-   (... (plane-a p0)
-        (plane-b p0)
-        (plane-c p0)
-        (plane-d p0)
-        (plane-a p1)
-        (plane-b p1)
-        (plane-c p1)
-        (plane-d p1))))
+(define (change-of-basis-r3 v0 v1 v2)
+  (invert (make-matrix (vector-x v0) (vector-x v1) (vector-x v2)
+                       (vector-y v0) (vector-y v1) (vector-y v2)
+                       (vector-z v0) (vector-z v1) (vector-z v2))))
 
-(define (intersect-denominator p0 p1)
-  (- (* (plane-a p0) (plane-b p1))
-     (* (plane-a p1) (plane-b p0))))
-
-
-
-(@htdf intersect-other)
-(@signature Plane Plane Line -> Line)
-;; produce other component of line of intersection from component and one plane
-;!!! examples
-
-;(define (intersect-other p0 p1 l) LINE-X) ;stub
-
-(@template-origin Line)
-
-(@template
- (define (intersect-other p0 p1 l)
-   (... p0 p1
-        (fn-for-vector (parametric-position l))
-        (fn-for-vector (parametric-direction l)))))
-
-(define (intersect-other p0 p1 l)
-  (make-parametric (intersect-position p0 p1 (parametric-position l))
-                 (intersect-direction p0 p1 (parametric-direction l))))
-
-
-
-(@htdf intersect-position)
-(@signature Plane Plane Vector -> Vector)
-;; produce position vector of other component of line of intersection
-;!!! examples
-
-;(define (intersect-position p0 p1 pos) ZERO-VECTOR) ;stub
-
-(@template-origin Plane Vector)
-
-(@template
- (define (intersect-position p0 p1 pos)
-   (... (plane-a p0)
-        (plane-b p0)
-        (plane-c p0)
-        (plane-d p0)
-        (plane-a p1)
-        (plane-b p1)
-        (plane-c p1)
-        (plane-d p1)
-        (vector-x pos)
-        (vector-y pos)
-        (vector-z pos))))
-
-(define (intersect-position p0 p1 pos)
-  (cond [(inexact? (vector-z pos))
-         (if (zero? (plane-b p1))
-             (make-vector (vector-x pos)
-                          (/ (- (plane-d p0)
-                                (* (plane-a p0) (vector-x pos)))
-                             (plane-b p0))
-                          0)
-             (make-vector (vector-x pos)
-                          (/ (- (plane-d p1)
-                                (* (plane-a p1) (vector-x pos)))
-                             (plane-b p1))
-                          0))]
-        [(inexact? (vector-y pos))
-         (if (zero? (plane-b p1))
-             (make-vector (vector-x pos)
-                          0
-                          (/ (- (plane-d p0)
-                                (* (plane-a p0) (vector-x pos)))
-                             (plane-c p0)))
-             (make-vector (vector-x pos)
-                          0
-                          (/ (- (plane-d p1)
-                                (* (plane-a p1) (vector-x pos)))
-                             (plane-c p1))))]
-        [else
-         (if (zero? (plane-b p1))
-             (make-vector 0
-                          (/ (- (plane-d p0)
-                                (* (plane-c p0) (vector-z pos)))
-                             (plane-b p0))
-                          (vector-z pos))
-             (make-vector 0
-                          (/ (- (plane-d p1)
-                                (* (plane-c p1) (vector-z pos)))
-                             (plane-b p1))
-                          (vector-z pos)))]))
-
-
-
-(@htdf intersect-direction)
-(@signature Plane Vector -> Vector)
-;; produce direction vector of other component of line of intersection
-;!!! examples
-
-;(define (intersect-direction p dir) dir) ;stub
-;                                         ;note that direction vector is nonzero
-
-(@template-origin Plane Vector)
-
-(@template
- (define (intersect-direction p dir)
-   (... (plane-a p0)
-        (plane-b p0)
-        (plane-c p0)
-        (plane-d p0)
-        (plane-a p1)
-        (plane-b p1)
-        (plane-c p1)
-        (plane-d p1)
-        (vector-x dir)
-        (vector-y dir)
-        (vector-z dir))))
-
-(define (intersect-direction p0 p1 dir)
-  (cond [(inexact? (vector-z dir))
-         (if (zero? (plane-b p1))
-             (make-vector (vector-x dir)
-                          (/ (- (- (plane-c p0))
-                                (* (plane-a p0) (vector-x dir)))
-                             (plane-b p0))
-                          1)
-             (make-vector (vector-x dir)
-                          (/ (- (- (plane-c p1))
-                                (* (plane-a p1) (vector-x dir)))
-                             (plane-b p1))
-                          1))]
-        [(inexact? (vector-y dir))
-         (if (zero? (plane-b p1))
-             (make-vector (vector-x dir)
-                          1
-                          (/ (- (- (plane-b p0))
-                                (* (plane-a p0) (vector-x dir)))
-                             (plane-c p0)))
-             (make-vector (vector-x dir)
-                          1
-                          (/ (- (- (plane-b p1))
-                                (* (plane-a p1) (vector-x dir)))
-                             (plane-c p1))))]
-        [else
-         (if (zero? (plane-c p1))
-             (make-vector 1
-                          (/ (- (- (plane-a p0))
-                                (* (plane-c p0) (vector-z dir)))
-                             (plane-b p0))
-                          (vector-z dir))
-             (make-vector 1
-                          (/ (- (- (plane-a p1))
-                                (* (plane-c p1) (vector-z dir)))
-                             (plane-b p1))
-                          (vector-z dir)))]))
-
-|#
 
 #|
 TODO: Subdividing overlapping mesh faces
@@ -744,8 +519,9 @@ element as follows:
    in both triangles, skip the remainder of this comparison.
 2. Compute line of intersection between planes containing both triangles.
 3. Check if computed line of intersection intersects both triangles.
-   3a. Performing checks on two sides of each triangle is sufficient.
-   3b. If either of the triangles have both intersection points very close
+   3a. This can be reduced to 2D comparisons using a change of basis.
+   3b. Performing checks on two sides of each triangle is sufficient.
+   3c. If either of the triangles have both intersection points very close
        (within the constant DELTA) to a vertex, return false.
 4. If previous check returned false, skip the remainder of this comparison.
 5. Subdivide both triangles along line of intersection.

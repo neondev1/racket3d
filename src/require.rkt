@@ -7,7 +7,7 @@
 ;; REQUIRE.rkt
 ;;
 ;; Contains all @htdd tags for every .rkt file for convenience;
-;; Also useful for running tests
+;; also useful for running tests since this imports every file
 ;;
 
 
@@ -21,11 +21,13 @@
 (require "vector.rkt")
 (@htdd Plane Line)
 
-(require "bst.rkt")
-(@htdd BST)
+(require "matrix.rkt")
+(@htdd Matrix)
 
 (require "projection.rkt")
-(@htdd Homogeneous Matrix)
+
+(require "bst.rkt")
+(@htdd BST)
 
 (require "object.rkt")
 (@htdd Cuboid Icosphere Mesh VertexBuffer Element ElementBuffer Object)
