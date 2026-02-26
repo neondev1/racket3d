@@ -70,13 +70,13 @@
 ;; Row is one of:
 ;;  - empty
 ;;  - (cons Number Row)
-;; interp. a row of a 2x4 augmented matrix, filled from right to left, with all
-;;         zero entries omitted; e.g. (list 1 2) represents the row [0 0 1 | 2]
+;; interp. a row of a 2x4 augmented matrix, filled from right to left,
+;;         with all zero entries to the left of the pivot omitted
 ;; CONSTRAINT: (length Row) must be at most 4
 (define ROW0 (list        )) ;no pivots
 (define ROW1 (list       1)) ;inconsistent
-(define ROW2 (list 1 3 1 2))
-(define ROW3 (list     1 2))
+(define ROW2 (list 1 3 1 2)) ;[1 3 1 | 2]
+(define ROW3 (list     1 2)) ;[0 0 1 | 2]
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;empty
@@ -504,33 +504,3 @@
   (invert (make-matrix (vector-x v0) (vector-x v1) (vector-x v2)
                        (vector-y v0) (vector-y v1) (vector-y v2)
                        (vector-z v0) (vector-z v1) (vector-z v2))))
-
-
-#|
-TODO: Subdividing overlapping mesh faces
-!!!
-
-BASIC PROCEDURE
-
-For each mesh face added to buffer, perform a comparison with each existing
-element as follows:
-1. Compute distance between centroids. If distance is greater than or equal to
-   the sum of the greatest distances between the centroid and farthest vertex
-   in both triangles, skip the remainder of this comparison.
-2. Compute line of intersection between planes containing both triangles.
-3. Check if computed line of intersection intersects both triangles.
-   3a. This can be reduced to 2D comparisons using a change of basis.
-   3b. Performing checks on two sides of each triangle is sufficient.
-   3c. If either of the triangles have both intersection points very close
-       (within the constant DELTA) to a vertex, return false.
-4. If previous check returned false, skip the remainder of this comparison.
-5. Subdivide both triangles along line of intersection.
-   5a. For each subdivision:
-   5b. Determine which two edges are intersected by the line.
-   5c. Create a mesh face from the triangle created by cutting along the line.
-   5d. Divide remaining quadrilateral into two triangular mesh faces.
-6. The existing mesh face that has been subdivided is reinserted into the list
-   without checks. The new mesh faces are inserted with this procedure.
-   6a. If possible, skip checks for all polygons that have been checked before.
-
-|#

@@ -1,6 +1,6 @@
 # racket3d
 
-3D rendering engine written in BSL (Racket) with [SPD](https://github.com/GregorKiczales/spd) [tags](https://cs110.students.cs.ubc.ca/reference/design-recipes.html) and [style rules](https://cs110.students.cs.ubc.ca/reference/style-rules.html).
+3D rendering engine written in BSL (Racket) with [SPD](https://github.com/GregorKiczales/spd) tags and style rules.
 
 ## Requirements
 
@@ -8,7 +8,7 @@ racket3d requires [Racket](https://download.racket-lang.org/) to run.
 
 Due to the use of SPD metadata tags, the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt) is needed to run racket3d. Two options are available:
 
-1. Installing the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt). This can be done in DrRacket (File > Install Package...) with the URL above or via command line:
+1. Installing the package. This can be done in DrRacket (File > Install Package...) with the URL above or via command line:
 ```bash
 curl https://cs110.students.cs.ubc.ca/spd.plt > spd.plt
 raco setup -A spd.plt

@@ -1,6 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-beginner-reader.ss" "lang")((modname require) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname require) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #t)))
 (require spd/tags)
 
 ;;
@@ -18,11 +18,11 @@
 (require "common.rkt")
 (@htdd Colour Vector Euler Triangle)
 
-(require "vector.rkt")
-(@htdd Plane Line)
-
 (require "matrix.rkt")
 (@htdd Matrix)
+
+(require "vector.rkt")
+(@htdd Plane Line)
 
 (require "projection.rkt")
 
