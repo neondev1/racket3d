@@ -498,9 +498,35 @@
 ;; CONSTRAINT: {v0, v1, v2} must span R^3
 ;!!! tests
 
-(@template-origin Vector)
+(@template-origin fn-composition)
 
 (define (change-of-basis-r3 v0 v1 v2)
-  (invert (make-matrix (vector-x v0) (vector-x v1) (vector-x v2)
-                       (vector-y v0) (vector-y v1) (vector-y v2)
-                       (vector-z v0) (vector-z v1) (vector-z v2))))
+  (invert (basis->standard-r3 v0 v1 v2)))
+
+
+
+(@htdf basis->standard)
+(@signature Vector Vector -> Matrix)
+;; given a basis B={v0, v1}, produce the matrix from B to the standard basis
+;; CONSTRAINT: {v0, v1} must form a basis for a subspace of R^3 of dimension 2
+;!!! tests
+
+(@template-origin fn-composition)
+
+(define (basis->standard v0 v1)
+  (basis->standard-r3 v0 v1 ZERO-VECTOR))
+
+
+
+(@htdf basis->standard-r3)
+(@signature Vector Vector Vector -> Matrix)
+;; given a basis B={v0, v1, v2}, produce the matrix from B to the standard basis
+;; CONSTRAINT: {v0, v1, v2} must span R^3
+;!!! tests
+
+(@template-origin Vector)
+
+(define (basis->standard-r3 v0 v1 v2)
+  (make-matrix (vector-x v0) (vector-x v1) (vector-x v2)
+               (vector-y v0) (vector-y v1) (vector-y v2)
+               (vector-z v0) (vector-z v1) (vector-z v2)))
