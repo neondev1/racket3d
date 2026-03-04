@@ -37,13 +37,13 @@ Phase 1 - merging element and vertex buffers; for each mesh face added to the
        triangle as well as their cross product, with the origin at its v0.
    2b. Consider each edge of the first triangle as a parametric line; call a
        point on the line v. Compute v such that the z-component of [v]_B is 0.
-   2c. Check if the x and y components of [v]_B are in (DELTA, 1-DELTA).
+   2c. Check if the sum of the x/y components of [v]_B are in (DELTA, 1-DELTA).
    2d. If no intersection is found, repeat this for the other triangle.
    2e. If still no intersection is found, proceed to the next comparison.
 3. Subdivide both triangles along their line of intersection.
-   3a. For each subdivision:
-   3b. Find the line of intersection by projecting a (non-perpendicular) edge
-       of the other triangle onto the plane of the current triangle.
+   3a. Find the line of intersection by projecting a (non-perpendicular) edge
+       of one triangle onto the plane of the other triangle (using the basis).
+   3b. For each subdivision:
    3c. Determine which two edges are intersected by the line.
    3d. Create a mesh face from the triangle created by cutting along the line.
    3e. Divide the remaining quadrilateral into two triangular mesh faces.
@@ -98,6 +98,93 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
 ;;
 
 
+#;(@htdf triangle-intersect)
+(@signature Triangle Triangle -> Line or false)
+;; produce the line of intersection of two triangles, false if it does not exist
+;!!! tests
+
+(@template-origin Triangle)
+
+#;(define (triangle-intersect t0 t1)
+  (cond [(triangle-intersect? t0 (triangle->surface t1))
+         ]
+        [(triangle-intersect? t1 (triangle->surface t0))
+         ]
+        [else
+         false]))
+
+
+
+(@htdf triangle-intersect?)
+(@signature Triangle Surface -> Boolean)
+;; produce true if the given triangle and surface intersect, false otherwise
+;!!! tests
+
+(@template-origin fn-composition)
+
+(define (triangle-intersect? t s)
+  (triangle-intersect?/basis (transform-triangle t s)))
+
+
+
+(@htdf triangle-intersect?/basis)
+(@signature Triangle -> Boolean)
+;; produce true iff any edge passes through the point (x, y, 0), x+y in (Δ, 1-Δ)
+;!!! tests
+
+(@template-origin Triangle)
+
+(define (triangle-intersect?/basis t)
+  (or (line-intersect?/basis (vectors->line (poly-v0 t) (poly-v1 t)))
+      (line-intersect?/basis (vectors->line (poly-v0 t) (poly-v2 t)))
+      (line-intersect?/basis (vectors->line (poly-v1 t) (poly-v2 t)))))
+
+
+
+(@htdf line-intersect?/basis)
+(@signature Line -> Boolean)
+;; produce true iff the line passes through the point (x, y, 0), x+y in (Δ, 1-Δ)
+;!!! tests
+
+(@template-origin Line)
+
+(define (line-intersect?/basis l)
+  (if (zero? (vector-z (parametric-direction l)))
+      false
+      (on-surface? (add (parametric-position l)
+                        (scalar-multiply
+                         (parametric-direction l)
+                         (zero-parameter (parametric-position l)
+                                         (parametric-direction l)))))))
+
+
+
+(@htdf on-surface?)
+(@signature Vector -> Boolean)
+;; produce true iff the vector's components sum is in (DELTA, 1-DELTA)
+;; CONSTRAINT: the z component of the vector must be zero
+;!!! tests
+
+(@template-origin Vector)
+
+(define (on-surface? v)
+  (< DELTA (+ (vector-x v) (vector-y v)) (- 1 DELTA)))
+
+
+
+(@htdf zero-parameter)
+(@signature Vector Vector -> Number)
+;; produce the parameter for which z=0 given vectors defining a parametric line
+;; CONSTRAINT: the line must not be parallel to z=0
+;!!! tests
+
+(@template-origin Vector)
+
+(define (zero-parameter pos dir)
+  (- (/ (vector-z pos) (vector-z dir))))
+
+
+
 (@htdf triangle->surface)
 (@signature Triangle -> Surface)
 ;; produce the surface corresponding to the given triangle
@@ -114,3 +201,17 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
                 (sub (poly-v1 t) (poly-v0 t)) (sub (poly-v2 t) (poly-v0 t))
                 (change-of-basis (sub (poly-v1 t) (poly-v0 t))
                                  (sub (poly-v2 t) (poly-v0 t)))))
+
+
+
+(@htdf transform-triangle)
+(@signature Triangle Surface -> Triangle)
+;; produce the triangle transformed into the basis of the given surface
+;!!! tests
+
+(@template-origin Surface)
+
+(define (transform-triangle t s)
+  (make-poly (transform (surface-basis s) (poly-v0 t))
+             (transform (surface-basis s) (poly-v1 t))
+             (transform (surface-basis s) (poly-v2 t))))

@@ -286,6 +286,18 @@
 
 
 
+(@htdf vectors->line)
+(@signature Vector Vector -> Line)
+;; produce a line containing both vectors
+;!!! tests
+
+(@template-origin fn-composition)
+
+(define (vectors->line v0 v1)
+  (make-parametric v0 (sub v1 v0)))
+
+
+
 (@htdf normal->plane)
 (@signature Vector Vector -> Plane)
 ;; produce Cartesian form of plane given normal and a position vector on plane
