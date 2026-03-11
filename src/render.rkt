@@ -185,6 +185,20 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
 
 
 
+(@htdf triangle->lines)
+(@signature Triangle -> (listof Line))
+;; produce the lines containing the three edges of the triangle
+;!!! tests
+
+(@template-origin fn-composition)
+
+(define (triangle->lines t)
+  (list (vectors->line (poly-v0 t) (poly-v1 t))
+        (vectors->line (poly-v0 t) (poly-v2 t))
+        (vectors->line (poly-v1 t) (poly-v2 t))))
+
+
+
 (@htdf triangle->surface)
 (@signature Triangle -> Surface)
 ;; produce the surface corresponding to the given triangle

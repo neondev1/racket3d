@@ -15,15 +15,14 @@ raco setup -A spd.plt
 ```
 
 2. Commenting out all SPD tags. This can be done via command line from the racket3d directory:
+> [!WARNING]
+> If you are running the commands in Option 2, ensure you are running them from the racket3d directory.
 ```bash
 # For GNU sed (most systems):
 sed -i -e 's/(@/#;\n(@/g' src/*.rkt
 # For BSD sed (MacOS):
 sed -i '' -e 's/(@/#;\n(@/g' src/*.rkt
 ```
-
-> [!WARNING]
-> If you are running the commands in Option 2, ensure you are running them from the racket3d directory.
 
 ## Technical information
 

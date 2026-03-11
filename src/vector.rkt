@@ -298,6 +298,34 @@
 
 
 
+(@htdf vector-parallel?)
+(@signature Vector Vector -> Boolean)
+;; produce true if the given vectors are parallel, false otherwise
+;!!! tests
+
+(@template-origin fn-composition)
+
+(define (vector-parallel? v0 v1)
+  (vector-zero? (cross-product v0 v1)))
+
+
+
+(@htdf vector-zero?)
+(@signature Vector -> Boolean)
+;; produce true if a vector is the zero vector, false otherwise
+(check-expect (vector-zero? ZERO-VECTOR) true)
+(check-expect (vector-zero? (make-vector #i0 0.0 #i0.0)) true)
+(check-expect (vector-zero? (make-vector 0 0 1)) false)
+
+(@template-origin Vector)
+
+(define (vector-zero? v)
+  (and (zero? (vector-x v))
+       (zero? (vector-y v))
+       (zero? (vector-z v))))
+
+
+
 (@htdf normal->plane)
 (@signature Vector Vector -> Plane)
 ;; produce Cartesian form of plane given normal and a position vector on plane
@@ -347,9 +375,8 @@
 (@template-origin Plane)
 
 (define (plane-parallel? p0 p1)
-  (= (/ (plane-a p0) (plane-a p1))
-     (/ (plane-b p0) (plane-b p1))
-     (/ (plane-c p0) (plane-c p1))))
+  (vector-parallel? (make-vector (plane-a p0) (plane-b p0) (plane-c p0))
+                    (make-vector (plane-a p1) (plane-b p1) (plane-c p1))))
 
 
 
