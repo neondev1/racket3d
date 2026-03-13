@@ -63,33 +63,25 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
 
 
 (@htdd Surface)
-(define-struct surface (pos v0 v1 basis))
-;; Surface is (make-surface Vector Vector Vector Matrix)
-;; interp. a triangular surface, defined by its position vector and two basis
-;;         vectors corresponding to its edges, as well as a matrix transform
-;;         from the standard basis to the basis {v0, v1}
-;; CONSTRAINT: {v0, v1} must form a basis for a subspace of R^3 of dimension 2;
-;;             basis must map coordinates from the standard basis to said basis
+(define-struct surface (position basis))
+;; Surface is (make-surface Vector Matrix)
+;; interp. a triangular surface, defined by its position vector and a matrix
+;;         transform from the standard basis to the basis defined by its edges
+;; CONSTRAINT: basis must be an invertible matrix
 (define SURFACE1
-  (make-surface ORIGIN (make-vector 1 0 0) (make-vector 0 1 0) IDENTITY))
+  (make-surface ORIGIN IDENTITY))
 (define SURFACE2
   (make-surface (poly-v0 TRIANGLE3)
-                (sub (poly-v1 TRIANGLE3) (poly-v0 TRIANGLE3))
-                (sub (poly-v2 TRIANGLE3) (poly-v0 TRIANGLE3))
                 (change-of-basis
                  (sub (poly-v1 TRIANGLE3) (poly-v0 TRIANGLE3))
                  (sub (poly-v2 TRIANGLE3) (poly-v0 TRIANGLE3)))))
 
-(@dd-template-rules compound ;4 fields
+(@dd-template-rules compound ;2 fields
                     ref      ;(surface-pos Surface) is Vector
-                    ref      ;(surface-v0 Surface) is Vector
-                    ref      ;(surface-v1 Surface) is Vector
                     ref)     ;(surface-basis Surface) is Matrix
 
 (define (fn-for-surface s)
   (... (fn-for-vector (surface-pos s))
-       (fn-for-vector (surface-v0 s))
-       (fn-for-vector (surface-v1 s))
        (fn-for-matrix (surface-basis s))))
 
 
@@ -98,57 +90,100 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
 ;;
 
 
-#;(@htdf triangle-intersect)
+(@htdf triangle-intersect)
 (@signature Triangle Triangle -> Line or false)
-;; produce the line of intersection of two triangles, false if it does not exist
+;; produce the line of intersection of the triangles, false if it does not exist
+;!!! tests
+
+(@template-origin fn-composition)
+
+(define (triangle-intersect t0 t1)
+  (triangle-intersect/surface t0 t1
+                              (triangle->surface t0) (triangle->surface t1)))
+
+
+
+(@htdf triangle-intersect/surface)
+(@signature Triangle Triangle Surface Surface -> Line or false)
+;; produce the line of intersection of the triangles given their surfaces
+;!!! tests
+
+(@template-origin Surface)
+
+(define (triangle-intersect/surface t0 t1 s0 s1)
+  (triangle-intersect/lines
+   t0 t1 s0 s1
+   (triangle->lines (transform-triangle
+                     (translate-triangle t0 (negate (surface-position s1)))
+                     s1))
+   (triangle->lines (transform-triangle
+                     (translate-triangle t1 (negate (surface-position s0)))
+                     s0))))
+
+
+
+(@htdf triangle-intersect/lines)
+(@signature Triangle Triangle Surface Surface (listof Line) (listof Line)
+            -> Line or false)
+;; produce the line of intersection of the triangles given their surfaces/edges
 ;!!! tests
 
 (@template-origin Triangle)
 
-#;(define (triangle-intersect t0 t1)
-  (cond [(triangle-intersect? t0 (triangle->surface t1))
-         ]
-        [(triangle-intersect? t1 (triangle->surface t0))
-         ]
+(define (triangle-intersect/lines t0 t1 s0 s1 e0 e1)
+  (cond [(edges-intersect? e0)
+         (transform-line (project-line-xy (find-first-nonperpendicular e0)) s1
+                         (basis->standard (sub (poly-v1 t1) (poly-v0 t1))
+                                          (sub (poly-v2 t1) (poly-v0 t1))))]
+        [(edges-intersect? e1)
+         (transform-line (project-line-xy (find-first-nonperpendicular e1)) s0
+                         (basis->standard (sub (poly-v1 t0) (poly-v0 t0))
+                                          (sub (poly-v2 t0) (poly-v0 t0))))]
         [else
          false]))
 
 
 
-(@htdf triangle-intersect?)
-(@signature Triangle Surface -> Boolean)
-;; produce true if the given triangle and surface intersect, false otherwise
+(@htdf find-first-nonperpendicular)
+(@signature (listof Line) -> Line)
+;; produce the first line with a direction vector with nonzero x or y component
+;; CONSTRAINT: the given list must contain at least one such line
 ;!!! tests
 
-(@template-origin fn-composition)
+(@template-origin (listof Line))
 
-(define (triangle-intersect? t s)
-  (triangle-intersect?/basis (transform-triangle t s)))
+(define (find-first-nonperpendicular lines)
+  (cond [(empty? lines)
+         (error "Triangle is degenerate")]
+        [else
+         (if (surface-perpendicular? (first lines))
+             (find-first-nonperpendicular (rest lines))
+             (first lines))]))
 
 
 
-(@htdf triangle-intersect?/basis)
-(@signature Triangle -> Boolean)
+(@htdf edges-intersect?)
+(@signature (listof Line) -> Boolean)
 ;; produce true iff any edge passes through the point (x, y, 0), x+y in (Δ, 1-Δ)
 ;!!! tests
 
-(@template-origin Triangle)
+(@template-origin (listof Line)) ;treat as compound data
 
-(define (triangle-intersect?/basis t)
-  (or (line-intersect?/basis (vectors->line (poly-v0 t) (poly-v1 t)))
-      (line-intersect?/basis (vectors->line (poly-v0 t) (poly-v2 t)))
-      (line-intersect?/basis (vectors->line (poly-v1 t) (poly-v2 t)))))
+(define (edges-intersect? edges)
+  (or (line-intersect? (first edges))
+      (line-intersect? (second edges))
+      (line-intersect? (third edges))))
 
 
 
-(@htdf line-intersect?/basis)
+(@htdf line-intersect?)
 (@signature Line -> Boolean)
 ;; produce true iff the line passes through the point (x, y, 0), x+y in (Δ, 1-Δ)
 ;!!! tests
 
 (@template-origin Line)
 
-(define (line-intersect?/basis l)
+(define (line-intersect? l)
   (if (zero? (vector-z (parametric-direction l)))
       false
       (on-surface? (add (parametric-position l)
@@ -185,6 +220,18 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
 
 
 
+(@htdf surface-perpendicular?)
+(@signature Vector -> Boolean)
+;; produce true iff the given vector's x and y components are both zero
+;!!! tests
+
+(@template-origin Vector)
+
+(define (surface-perpendicular? v)
+  (and (zero? (vector-x v)) (zero? (vector-y v))))
+
+
+
 (@htdf triangle->lines)
 (@signature Triangle -> (listof Line))
 ;; produce the lines containing the three edges of the triangle
@@ -212,9 +259,47 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
 
 (define (triangle->surface t)
   (make-surface (poly-v0 t)
-                (sub (poly-v1 t) (poly-v0 t)) (sub (poly-v2 t) (poly-v0 t))
                 (change-of-basis (sub (poly-v1 t) (poly-v0 t))
                                  (sub (poly-v2 t) (poly-v0 t)))))
+
+
+
+(@htdf project-line-xy)
+(@signature Line -> Line)
+;; produce the given line projected onto the xy plane
+;!!! tests
+
+(@template-origin Line)
+
+(define (project-line-xy l)
+  (make-parametric (project-vector-xy (parametric-position l))
+                   (project-vector-xy (parametric-direction l))))
+
+
+
+(@htdf project-vector-xy)
+(@signature Vector -> Vector)
+;; produce the given vector projected onto the xy plane
+;!!! tests
+
+(@template-origin Vector)
+
+(define (project-vector-xy v)
+  (make-vector (vector-x v) (vector-y v) 0))
+
+
+
+(@htdf transform-line)
+(@signature Line Surface Matrix -> Line)
+;; produce transformation of the line from the surface basis to standard basis
+;!!! tests
+
+(@template-origin Line)
+
+(define (transform-line l s b)
+  (make-parametric (add (transform b (parametric-position l))
+                        (surface-position s))
+                   (transform b (parametric-direction l))))
 
 
 
@@ -229,3 +314,17 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
   (make-poly (transform (surface-basis s) (poly-v0 t))
              (transform (surface-basis s) (poly-v1 t))
              (transform (surface-basis s) (poly-v2 t))))
+
+
+
+(@htdf translate-triangle)
+(@signature Triangle Vector -> Triangle)
+;; produce the translation of the given triangle by the given vector
+;!!! tests
+
+(@template-origin Triangle)
+
+(define (translate-triangle t v)
+  (make-poly (add v (poly-v0 t))
+             (add v (poly-v1 t))
+             (add v (poly-v2 t))))

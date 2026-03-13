@@ -26,11 +26,11 @@ sed -i '' -e 's/(@/#;\n(@/g' src/*.rkt
 
 ## Technical information
 
+All code in racket3d is purely functional, and all loops (excluding functions used exclusively for testing) are fully tail-recursive.
+
 racket3d uses a [right-handed coordinate system](https://en.wikipedia.org/wiki/Right-handed_coordinate_system) with a vertical *y*-axis.
 
 Rendering is performed on a per-polygon basis, since per-fragment rendering was deemed to be too inefficient for a software-based renderer (especially with Racket). More details are available in the source code.
-
-Polygon culling may be added in the future to improve performance.
 
 ## SPD information
 
