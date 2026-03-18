@@ -29,8 +29,14 @@
 (require "bst.rkt")
 (@htdd BST)
 
+(require "buffers.rkt")
+(@htdd VertexBuffer Element ElementBuffer)
+
+(require "geodesic.rkt")
+(@htdd Edge)
+
 (require "object.rkt")
-(@htdd Cuboid Icosphere Mesh VertexBuffer Element ElementBuffer Object)
+(@htdd Cuboid Icosphere Mesh Object)
 
 (require "lighting.rkt")
 
