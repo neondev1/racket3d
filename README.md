@@ -8,15 +8,9 @@ racket3d requires [Racket](https://download.racket-lang.org/) to run.
 
 Due to the use of SPD metadata tags, the [SPD package](https://cs110.students.cs.ubc.ca/spd.plt) is needed to run racket3d. Two options are available:
 
-1. Installing the package. This can be done in DrRacket (File > Install Package...) with the URL above or via command line:
-```bash
-curl https://cs110.students.cs.ubc.ca/spd.plt > spd.plt
-raco setup -A spd.plt
-```
-
-2. Commenting out all SPD tags. This can be done via command line from the racket3d directory:
+1. Commenting out all SPD tags. This can be done via command line from the racket3d directory:
 > [!WARNING]
-> If you are running the commands in Option 2, ensure you are running them from the racket3d directory.
+> If you are running the commands in Option 1, ensure you are running them from the racket3d directory.
 ```bash
 # For GNU sed (most systems):
 sed -i -e 's/(@/#;\n(@/g' src/*.rkt
@@ -24,9 +18,15 @@ sed -i -e 's/(@/#;\n(@/g' src/*.rkt
 sed -i '' -e 's/(@/#;\n(@/g' src/*.rkt
 ```
 
+2. Installing the package. This can be done in DrRacket (File > Install Package...) with the URL above or via command line:
+```bash
+curl https://cs110.students.cs.ubc.ca/spd.plt > spd.plt
+raco setup -A spd.plt
+```
+
 ## Technical information
 
-All code in racket3d is purely functional, and all loops (excluding functions used exclusively for testing) are fully tail-recursive.
+All code in racket3d is purely functional, and all loops (excluding testing functions) are fully tail-recursive.
 
 racket3d uses a [right-handed coordinate system](https://en.wikipedia.org/wiki/Right-handed_coordinate_system) with a vertical *y*-axis.
 

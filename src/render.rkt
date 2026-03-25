@@ -85,6 +85,30 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
        (fn-for-matrix (surface-basis s))))
 
 
+
+(@htdf Scene)
+(define-struct scene (vertices elements surfaces))
+;; Scene is (make-scene VertexBuffer ElementBuffer (listof Surface))
+;; interp. the vertices and elements of a scene under construction, as well as
+;;         the surface corresponding to every element
+;; CONSTRAINT: no two elements should intersect one another
+(define SCENE0
+  (make-scene empty empty empty))
+(define SCENE1
+  (make-scene (list (poly-v0 TRIANGLE3) (poly-v1 TRIANGLE3) (poly-v2 TRIANGLE3))
+              (list (make-element 0 1 2)) (list SURFACE2)))
+
+(@dd-template-rules compound ;3 fields
+                    ref      ;(scene-vertices Scene) is VertexBuffer
+                    ref      ;(scene-elements Scene) is ElementBuffer
+                    ref)     ;(scene-surfaces Scene) is (listof Surface)
+
+(define (fn-for-scene s)
+  (... (fn-for-vbuf (scene-vertices s))
+       (fn-for-ebuf (scene-elements s))
+       (... (scene-surfaces s))))
+
+
 ;;
 ;; FUNCTIONS
 ;;
@@ -164,7 +188,7 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
 
 (@htdf edges-intersect?)
 (@signature (listof Line) -> Boolean)
-;; produce true iff any edge passes through the point (x, y, 0), x+y in (Δ, 1-Δ)
+;; produce true iff any edge passes through the point (x, y, 0), x+y in (δ, 1-δ)
 ;!!! tests
 
 (@template-origin (listof Line)) ;treat as compound data
@@ -178,7 +202,7 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
 
 (@htdf line-intersect?)
 (@signature Line -> Boolean)
-;; produce true iff the line passes through the point (x, y, 0), x+y in (Δ, 1-Δ)
+;; produce true iff the line passes through the point (x, y, 0), x+y in (δ, 1-δ)
 ;!!! tests
 
 (@template-origin Line)
