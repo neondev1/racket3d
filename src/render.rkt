@@ -9,6 +9,9 @@
 (require "common.rkt")
 (@htdd Colour Vector Euler Triangle)
 
+(require "buffers.rkt")
+(@htdd VertexBuffer Element ElementBuffer)
+
 (require "matrix.rkt")
 (@htdd Matrix)
 
@@ -115,6 +118,35 @@ Phase 2 - camera matrix transformation + BST construction using vertex buffer,
 ;;
 ;; FUNCTIONS
 ;;
+
+
+#|
+(@htdf scene+mesh)
+(@signature Scene Mesh -> Scene)
+;; produce scene with the given mesh added to it
+;!!! tests
+
+(@template-origin Mesh)
+
+(define (scene+mesh s m)
+  (scene+buffers s (mesh-vertices m) (mesh-elements m)))
+|#
+
+
+
+(@htdf scene+buffers)
+(@signature Scene VertexBuffer ElementBuffer -> Scene)
+;; produce scene with the given vertex and element buffers added to it
+;!!! tests
+
+(@template-origin ElementBuffer)
+
+(define (scene+buffers s vbuf ebuf)
+  (cond [(empty? ebuf)
+         s]
+        [else
+         (scene+buffers (... s (element->triangle vbuf (first ebuf)))
+                        vbuf (rest ebuf))]))
 
 
 

@@ -9,10 +9,18 @@
 (require "common.rkt")
 (@htdd Colour Vector Euler Triangle)
 
+(require "bst.rkt")
+(@htdd BST)
+
 ;;
 ;; BUFFERS.rkt
 ;;
-;; Data definitions for vertex buffers and element buffers
+;; Data definitions and functions for vertex buffers and element buffers
+;;
+
+
+;;
+;; DATA DEFINITIONS
 ;;
 
 
@@ -90,3 +98,56 @@
         [else
          (... (fn-for-element (first ebuf))
               (fn-for-ebuf (rest ebuf)))]))
+
+
+;;
+;; FUNCTIONS
+;;
+
+
+(@htdf element->triangle)
+(@signature VertexBuffer Element -> Triangle)
+;; produce the actual positions of the vertices of the given element
+(check-within (element->triangle VBUF1 ELEMENT1)
+              (make-poly (make-vector 2 0 0)
+                         (make-vector -1 2 0)
+                         (make-vector -1 -1 (/ (sqrt 13) 2)))
+              DELTA)
+(check-within (element->triangle VBUF1 ELEMENT2)
+              (make-poly (make-vector -1 -1 (/ (sqrt 13) 2))
+                         (make-vector -1 2 0)
+                         (make-vector 2 0 0))
+              DELTA)
+
+(@template-origin Element)
+
+(define (element->triangle vbuf e)
+  (make-poly (list-ref vbuf (element-v0 e))
+             (list-ref vbuf (element-v1 e))
+             (list-ref vbuf (element-v2 e))))
+
+
+
+(@htdf element->triangle/bst)
+(@signature BST Element -> Triangle)
+;; produce the actual positions of the vertices of the given element given a BST
+;; CONSTRAINT: the set of BST values must consist only of vectors
+(check-within (element->triangle/bst (construct-bst VBUF1 (length VBUF1))
+                                     ELEMENT1)
+              (make-poly (make-vector 2 0 0)
+                         (make-vector -1 2 0)
+                         (make-vector -1 -1 (/ (sqrt 13) 2)))
+              DELTA)
+(check-within (element->triangle/bst (construct-bst VBUF1 (length VBUF1))
+                                     ELEMENT2)
+              (make-poly (make-vector -1 -1 (/ (sqrt 13) 2))
+                         (make-vector -1 2 0)
+                         (make-vector 2 0 0))
+              DELTA)
+
+(@template-origin Element)
+
+(define (element->triangle/bst vbst e)
+  (make-poly (lookup vbst (element-v0 e))
+             (lookup vbst (element-v1 e))
+             (lookup vbst (element-v2 e))))
