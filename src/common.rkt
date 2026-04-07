@@ -112,6 +112,33 @@
        (fn-for-vector (poly-v2 t))))
 
 
+
+(@htdd Numerical)
+;; Numerical is one of:
+;;  - Number
+;;  - (make-vector Number Number Number)
+;;  - (listof Numerical)
+;; interp. any scalar, vector, or a list of such
+(define NUMERICAL0 0)
+(define NUMERICAL1 ZERO-VECTOR)
+(define NUMERICAL2 (list 1 VECTOR2 (list 3 4 5)))
+
+(@dd-template-rules one-of              ;3 cases
+                    atomic-non-distinct ;Number
+                    compound            ;Vector
+                    ref                 ;Vector
+                    compound            ;(listof Numerical)
+                    ref)                ;(listof Numerical)
+
+(define (fn-for-numerical n)
+  (cond [(number? n)
+         (... n)]
+        [(vector? n)
+         (... (fn-for-vector n))]
+        [(list? n)
+         (... n)]))
+
+
 ;;
 ;; FUNCTIONS
 ;;
@@ -165,3 +192,60 @@
          lst]
         [else
          (drop (rest lst) (sub1 n))]))
+
+
+
+(@htdf inexact->exact/any)
+(@signature Numerical -> Numerical)
+;; convert all inexact numerical fields of the argument to exact numbers
+;!!! tests
+
+(@template-origin Numerical)
+
+(define (inexact->exact/any n)
+  (cond [(number? n)
+         (inexact->exact n)]
+        [(vector? n)
+         (inexact->exact/vector n)]
+        [(list? n)
+         (inexact->exact/list n)]))
+
+
+
+(@htdf inexact->exact/list inexact->exact/list--acc)
+(@signature (listof Numerical) -> (listof Numerical))
+;; convert all inexact numbers in elements of the given list to exact numbers
+;!!! tests
+
+(@template-origin accumulator)
+
+(define (inexact->exact/list lst)
+  (inexact->exact/list--acc lst empty))
+
+(@template-origin (listof Numerical) accumulator)
+
+(define (inexact->exact/list--acc lst rsf)
+  (cond [(empty? lst)
+         (reverse rsf)]
+        [else
+         (inexact->exact/list--acc (rest lst)
+                                   (cons (inexact->exact/any (first lst))
+                                         rsf))]))
+
+
+
+(@htdf inexact->exact/vector)
+(@signature Vector -> Vector)
+;; convert all inexact components in given vector to exact numbers
+(check-expect (inexact->exact/vector ZERO-VECTOR) ZERO-VECTOR)
+(check-expect (inexact->exact/vector (make-vector (sqrt 2) pi 1))
+              (make-vector (inexact->exact (sqrt 2))
+                           (inexact->exact pi)
+                           1))
+
+(@template-origin Vector)
+
+(define (inexact->exact/vector v)
+  (make-vector (inexact->exact (vector-x v))
+               (inexact->exact (vector-y v))
+               (inexact->exact (vector-z v))))
