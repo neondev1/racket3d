@@ -9,7 +9,7 @@
 (@htdd Colour Vector Euler Triangle)
 
 (require "object.rkt")
-(@htdd Cuboid Icosphere Mesh VertexBuffer Element ElementBuffer Object)
+(@htdd Cuboid Icosphere Mesh VertexBuffer Element ElementBuffer Mesh Object)
 
 ;;
 ;; MAIN.rkt

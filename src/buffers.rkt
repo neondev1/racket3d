@@ -100,6 +100,23 @@
               (fn-for-ebuf (rest ebuf)))]))
 
 
+
+(@htdd Mesh)
+(define-struct mesh (vertices elements))
+;; Mesh is (make-mesh VertexBuffer ElementBuffer)
+;; interp. the unique vertices and triangular elements of a mesh
+(define MESH0 (make-mesh empty empty))
+(define MESH1 (make-mesh VBUF1 EBUF1))
+
+(@dd-template-rules compound ;2 fields
+                    ref      ;(mesh-vertices Mesh) is VertexBuffer
+                    ref)     ;(mesh-elements Mesh) is ElementBuffer
+
+(define (fn-for-mesh m)
+  (... (fn-for-vbuf (mesh-vertices m))
+       (fn-for-ebuf (mesh-elements m))))
+
+
 ;;
 ;; FUNCTIONS
 ;;

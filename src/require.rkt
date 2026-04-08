@@ -30,7 +30,7 @@
 (@htdd BST)
 
 (require "buffers.rkt")
-(@htdd VertexBuffer Element ElementBuffer)
+(@htdd VertexBuffer Element ElementBuffer Mesh)
 
 (require "geodesic.rkt")
 (@htdd Edge)

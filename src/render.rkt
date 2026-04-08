@@ -10,7 +10,7 @@
 (@htdd Colour Vector Euler Triangle)
 
 (require "buffers.rkt")
-(@htdd VertexBuffer Element ElementBuffer)
+(@htdd VertexBuffer Element ElementBuffer Mesh)
 
 (require "matrix.rkt")
 (@htdd Matrix)

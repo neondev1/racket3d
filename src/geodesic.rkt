@@ -13,7 +13,7 @@
 (@htdd Plane Line)
 
 (require "buffers.rkt")
-(@htdd VertexBuffer Element ElementBuffer)
+(@htdd VertexBuffer Element ElementBuffer Mesh)
 
 ;;
 ;; GEODESIC.rkt
