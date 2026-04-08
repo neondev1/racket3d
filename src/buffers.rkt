@@ -28,13 +28,13 @@
 ;; VertexBuffer is one of:
 ;;  - empty
 ;;  - (cons Vector VertexBuffer)
-;; interp. a list of unique vertices of a mesh, similar to a VBO in OpenGL
-;; CONSTRAINT: No duplicate vertices should be present in the list
+;; interp. a list of (ideally unique) vertices of a triangular mesh,
+;;         similar to a VBO in OpenGL
 (define VBUF0 empty)
-(define VBUF1 (list (make-vector 2 0 0)
-                    (make-vector -1 2 0)
-                    (make-vector -1 -1 (/ (sqrt 13) 2))
-                    (make-vector -1 -1 (/ (sqrt 13) -2)))) ;tetrahedron example
+(define VBUF1 (list ORIGIN
+                    (make-vector 1 0 0)
+                    (make-vector 0 1 0)
+                    (make-vector 0 0 1)))
 
 (@dd-template-rules one-of          ;2 cases
                     atomic-distinct ;empty
@@ -108,16 +108,14 @@
 (@htdf element->triangle)
 (@signature VertexBuffer Element -> Triangle)
 ;; produce the actual positions of the vertices of the given element
-(check-within (element->triangle VBUF1 ELEMENT1)
-              (make-poly (make-vector 2 0 0)
-                         (make-vector -1 2 0)
-                         (make-vector -1 -1 (/ (sqrt 13) 2)))
-              DELTA)
-(check-within (element->triangle VBUF1 ELEMENT2)
-              (make-poly (make-vector -1 -1 (/ (sqrt 13) 2))
-                         (make-vector -1 2 0)
-                         (make-vector 2 0 0))
-              DELTA)
+(check-expect (element->triangle VBUF1 ELEMENT1)
+              (make-poly ORIGIN
+                         (make-vector 1 0 0)
+                         (make-vector 0 1 0)))
+(check-expect (element->triangle VBUF1 ELEMENT2)
+              (make-poly (make-vector 0 1 0)
+                         (make-vector 1 0 0)
+                         ORIGIN))
 
 (@template-origin Element)
 
@@ -132,18 +130,16 @@
 (@signature BST Element -> Triangle)
 ;; produce the actual positions of the vertices of the given element given a BST
 ;; CONSTRAINT: the set of BST values must consist only of vectors
-(check-within (element->triangle/bst (construct-bst VBUF1 (length VBUF1))
+(check-expect (element->triangle/bst (construct-bst VBUF1 (length VBUF1))
                                      ELEMENT1)
-              (make-poly (make-vector 2 0 0)
-                         (make-vector -1 2 0)
-                         (make-vector -1 -1 (/ (sqrt 13) 2)))
-              DELTA)
-(check-within (element->triangle/bst (construct-bst VBUF1 (length VBUF1))
+              (make-poly ORIGIN
+                         (make-vector 1 0 0)
+                         (make-vector 0 1 0)))
+(check-expect (element->triangle/bst (construct-bst VBUF1 (length VBUF1))
                                      ELEMENT2)
-              (make-poly (make-vector -1 -1 (/ (sqrt 13) 2))
-                         (make-vector -1 2 0)
-                         (make-vector 2 0 0))
-              DELTA)
+              (make-poly (make-vector 0 1 0)
+                         (make-vector 1 0 0)
+                         ORIGIN))
 
 (@template-origin Element)
 

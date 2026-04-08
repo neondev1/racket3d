@@ -102,7 +102,7 @@
 (@signature Natural -> VertexBuffer)
 ;; produce vertices of n-frequency subdivision of an icosahedron
 ;; CONSTRAINT: n must be nonzero
-(check-within (subdivision-vertices 1) ICOSAHEDRON-VERTICES DELTA)
+(check-expect (equal? (subdivision-vertices 1) ICOSAHEDRON-VERTICES) true)
 ;!!! more tests
 
 (@template-origin Natural)
@@ -179,7 +179,9 @@
          (vertex-combinations--acc
           n v0 v1 (sub1 next)
           (cons (scalar-divide (add (scalar-multiply v1 (- n next))
-                                    (scalar-multiply v0 next)) n) rsf))]))
+                                    (scalar-multiply v0 next))
+                               n)
+                rsf))]))
 
 
 
@@ -269,8 +271,9 @@
 (@htdf get-vertex)
 (@signature Natural -> Vertex)
 ;; produce the vertex of the regular icosahedron with given index
-(check-within (get-vertex 0)  (make-vector (/ 2 (sqrt 5)) (/ 1 (sqrt 5)) 0)
-              DELTA)
+(check-expect (equal? (get-vertex 0)
+                      (make-vector (/ 2 (sqrt 5)) (/ 1 (sqrt 5)) 0))
+              true)
 (check-expect (get-vertex 10) (make-vector 0 1 0))
 
 (@template-origin Natural)
