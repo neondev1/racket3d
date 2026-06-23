@@ -14,7 +14,7 @@ Due to the use of SPD metadata tags, the [SPD package](https://cs110.students.cs
 ```bash
 # For GNU sed (most systems):
 sed -i -e 's/(@/#;\n(@/g' src/*.rkt
-# For BSD sed (MacOS):
+# For BSD sed (BSD, MacOS):
 sed -i '' -e 's/(@/#;\n(@/g' src/*.rkt
 ```
 
@@ -26,11 +26,13 @@ raco setup -A spd.plt
 
 ## Technical information
 
-All code in racket3d is purely functional, and all loops (excluding testing functions) are fully tail-recursive.
+All code in racket3d is purely functional (i.e. no imperative statements), and all loops are fully tail-recursive.
 
 racket3d uses a [right-handed coordinate system](https://en.wikipedia.org/wiki/Right-handed_coordinate_system) with a vertical *y*-axis.
 
-Rendering is performed on a per-polygon basis, since per-fragment rendering was deemed to be too inefficient for a software-based renderer (especially with Racket). More details are available in the source code.
+Rendering is done via a modified [painter's algorithm](https://en.wikipedia.org/wiki/Painter's_algorithm) with the ability to cut intersecting polygons. Backface culling may be implemented later.
+
+Introducing a [binary space partitioning](https://en.wikipedia.org/wiki/Binary_space_partitioning)-based algorithm in the future is a possibility, but at least from what I've observed in the Racket Student Languages, image manipulation is significantly more expensive than other operations, so this could actually degrade performance (compared to ordering the polygons every frame) if poorly implemented due to the extra polygons introduced. Perhaps a hybrid approach is more tenable.
 
 ## SPD information
 

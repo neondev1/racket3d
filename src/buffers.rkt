@@ -161,6 +161,6 @@
 (@template-origin Element)
 
 (define (element->triangle/bst vbst e)
-  (make-poly (lookup vbst (element-v0 e))
-             (lookup vbst (element-v1 e))
-             (lookup vbst (element-v2 e))))
+  (make-poly (lookup-bst vbst (element-v0 e))
+             (lookup-bst vbst (element-v1 e))
+             (lookup-bst vbst (element-v2 e))))
